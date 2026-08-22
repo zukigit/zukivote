@@ -24,8 +24,25 @@ erDiagram
         varchar private_key
     }
 
+    ITEMS {
+        integer id PK
+        uuid topic_id FK
+        integer voted_count
+        varchar description
+        varchar photo_url
+    }
+
+    ITEM_VALUES {
+        integer id PK
+        integer item_id FK
+        varchar key
+        varchar value
+    }
+
     USERS ||--o{ TOPICS : owns
     TOPICS ||--o{ VOTERS : has
+    TOPICS ||--o{ ITEMS : contains
+    ITEMS ||--o{ ITEM_VALUES : has
 ```
 
 ## Tables
@@ -55,3 +72,22 @@ erDiagram
 | user_name   | VARCHAR  | NOT NULL, UNIQUE           |
 | topic_id    | UUID     | FOREIGN KEY references topics(id) |
 | private_key | VARCHAR  | NOT NULL                   |
+
+### items
+
+| Column      | Type     | Constraints                |
+| ----------- | -------- | -------------------------- |
+| id          | INTEGER  | PRIMARY KEY, AUTO INCREMENT |
+| topic_id    | UUID     | FOREIGN KEY references topics(id) |
+| voted_count | INTEGER  | NOT NULL                   |
+| description | VARCHAR  | NOT NULL                   |
+| photo_url   | VARCHAR  |                            |
+
+### item_values
+
+| Column  | Type     | Constraints                |
+| ------- | -------- | -------------------------- |
+| id      | INTEGER  | PRIMARY KEY, AUTO INCREMENT |
+| item_id | INTEGER  | FOREIGN KEY references items(id) |
+| key     | VARCHAR  | NOT NULL, UNIQUE           |
+| value   | VARCHAR  | NOT NULL                   |
