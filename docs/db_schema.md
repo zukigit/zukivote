@@ -20,7 +20,6 @@ erDiagram
     VOTERS {
         integer id PK
         varchar user_name
-        uuid topic_id FK
         varchar private_key
     }
 
@@ -47,7 +46,6 @@ erDiagram
     }
 
     USERS ||--o{ TOPICS : owns
-    TOPICS ||--o{ VOTERS : has
     TOPICS ||--o{ ITEMS : contains
     ITEMS ||--o{ ITEM_VALUES : has
     TOPICS ||--o{ RECORDS : records
@@ -80,7 +78,6 @@ erDiagram
 | ----------- | -------- | -------------------------- |
 | id          | INTEGER  | PRIMARY KEY, AUTO INCREMENT |
 | user_name   | VARCHAR  | NOT NULL, UNIQUE           |
-| topic_id    | UUID     | FOREIGN KEY references topics(id) |
 | private_key | VARCHAR  | NOT NULL                   |
 
 ### items
