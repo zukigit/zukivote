@@ -39,10 +39,20 @@ erDiagram
         varchar value
     }
 
+    RECORDS {
+        integer id PK
+        uuid topic_id FK
+        integer voter_id FK
+        integer item_id FK
+    }
+
     USERS ||--o{ TOPICS : owns
     TOPICS ||--o{ VOTERS : has
     TOPICS ||--o{ ITEMS : contains
     ITEMS ||--o{ ITEM_VALUES : has
+    TOPICS ||--o{ RECORDS : records
+    VOTERS ||--o{ RECORDS : casts
+    ITEMS ||--o{ RECORDS : voted
 ```
 
 ## Tables
@@ -91,3 +101,14 @@ erDiagram
 | item_id | INTEGER  | FOREIGN KEY references items(id) |
 | key     | VARCHAR  | NOT NULL, UNIQUE           |
 | value   | VARCHAR  | NOT NULL                   |
+
+### records
+
+| Column   | Type     | Constraints                |
+| -------- | -------- | -------------------------- |
+| id       | INTEGER  | PRIMARY KEY, AUTO INCREMENT |
+| topic_id | UUID     | FOREIGN KEY references topics(id) |
+| voter_id | INTEGER  | FOREIGN KEY references voters(id) |
+| item_id  | INTEGER  | FOREIGN KEY references items(id) |
+
+> UNIQUE constraint on `(topic_id, voter_id)`: one voter can vote for only one item per topic, while being free to vote on other topics.
