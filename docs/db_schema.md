@@ -27,7 +27,6 @@ erDiagram
     ITEMS {
         integer id PK
         uuid topic_id FK
-        integer voted_count
         varchar description
         varchar photo_url
     }
@@ -77,9 +76,11 @@ erDiagram
 | Column      | Type     | Constraints                |
 | ----------- | -------- | -------------------------- |
 | id          | INTEGER  | PRIMARY KEY, AUTO INCREMENT |
-| user_name   | VARCHAR  | NOT NULL, UNIQUE           |
+| user_name   | VARCHAR  | NOT NULL                   |
 | topic_id    | UUID     | FOREIGN KEY references topics(id) |
 | private_key | VARCHAR  | NOT NULL                   |
+
+> UNIQUE constraint on `(topic_id, user_name)`.
 
 ### items
 
@@ -87,9 +88,10 @@ erDiagram
 | ----------- | -------- | -------------------------- |
 | id          | INTEGER  | PRIMARY KEY, AUTO INCREMENT |
 | topic_id    | UUID     | FOREIGN KEY references topics(id) |
-| voted_count | INTEGER  | NOT NULL                   |
 | description | VARCHAR  | NOT NULL                   |
 | photo_url   | VARCHAR  |                            |
+
+> `voted_count` is not stored; it is derived as `COUNT(records)` where `records.item_id = items.id`.
 
 ### item_values
 
@@ -97,8 +99,10 @@ erDiagram
 | ------- | -------- | -------------------------- |
 | id      | INTEGER  | PRIMARY KEY, AUTO INCREMENT |
 | item_id | INTEGER  | FOREIGN KEY references items(id) |
-| key     | VARCHAR  | NOT NULL, UNIQUE           |
+| key     | VARCHAR  | NOT NULL                   |
 | value   | VARCHAR  | NOT NULL                   |
+
+> UNIQUE constraint on `(item_id, key)`.
 
 ### records
 
@@ -107,3 +111,5 @@ erDiagram
 | id       | INTEGER  | PRIMARY KEY, AUTO INCREMENT |
 | voter_id | INTEGER  | FOREIGN KEY references voters(id) |
 | item_id  | INTEGER  | FOREIGN KEY references items(id) |
+
+> UNIQUE constraint on `(voter_id, item_id)` prevents a voter from voting on the same item more than once.
