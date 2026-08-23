@@ -67,7 +67,7 @@ erDiagram
 | Column     | Type     | Constraints                |
 | ---------- | -------- | -------------------------- |
 | id         | UUID     | PRIMARY KEY                |
-| owner_id   | UUID     | FOREIGN KEY references users(id) |
+| owner_id   | UUID     | FOREIGN KEY references users(id) ON DELETE CASCADE |
 | start_at   | INTEGER  | NOT NULL (unix time)       |
 | expired_at | INTEGER  | NOT NULL (unix time)       |
 
@@ -77,7 +77,7 @@ erDiagram
 | ----------- | -------- | -------------------------- |
 | id          | INTEGER  | PRIMARY KEY, AUTO INCREMENT |
 | user_name   | VARCHAR  | NOT NULL                   |
-| topic_id    | UUID     | FOREIGN KEY references topics(id) |
+| topic_id    | UUID     | FOREIGN KEY references topics(id) ON DELETE CASCADE |
 | private_key | VARCHAR  | NOT NULL                   |
 
 > UNIQUE constraint on `(topic_id, user_name)`.
@@ -87,7 +87,7 @@ erDiagram
 | Column      | Type     | Constraints                |
 | ----------- | -------- | -------------------------- |
 | id          | INTEGER  | PRIMARY KEY, AUTO INCREMENT |
-| topic_id    | UUID     | FOREIGN KEY references topics(id) |
+| topic_id    | UUID     | FOREIGN KEY references topics(id) ON DELETE CASCADE |
 | description | VARCHAR  | NOT NULL                   |
 | photo_url   | VARCHAR  |                            |
 
@@ -98,7 +98,7 @@ erDiagram
 | Column  | Type     | Constraints                |
 | ------- | -------- | -------------------------- |
 | id      | INTEGER  | PRIMARY KEY, AUTO INCREMENT |
-| item_id | INTEGER  | FOREIGN KEY references items(id) |
+| item_id | INTEGER  | FOREIGN KEY references items(id) ON DELETE CASCADE |
 | key     | VARCHAR  | NOT NULL                   |
 | value   | VARCHAR  | NOT NULL                   |
 
@@ -109,7 +109,7 @@ erDiagram
 | Column   | Type     | Constraints                |
 | -------- | -------- | -------------------------- |
 | id       | INTEGER  | PRIMARY KEY, AUTO INCREMENT |
-| voter_id | INTEGER  | FOREIGN KEY references voters(id) |
-| item_id  | INTEGER  | FOREIGN KEY references items(id) |
+| voter_id | INTEGER  | FOREIGN KEY references voters(id) ON DELETE CASCADE |
+| item_id  | INTEGER  | FOREIGN KEY references items(id) ON DELETE CASCADE |
 
 > UNIQUE constraint on `(voter_id, item_id)` prevents a voter from voting on the same item more than once.
