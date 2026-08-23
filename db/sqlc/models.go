@@ -5,16 +5,14 @@
 package sqlc
 
 import (
-	"database/sql"
-
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Item struct {
-	ID          int32          `json:"id"`
-	TopicID     uuid.UUID      `json:"topic_id"`
-	Description string         `json:"description"`
-	PhotoUrl    sql.NullString `json:"photo_url"`
+	ID          int32       `json:"id"`
+	TopicID     pgtype.UUID `json:"topic_id"`
+	Description string      `json:"description"`
+	PhotoUrl    pgtype.Text `json:"photo_url"`
 }
 
 type ItemValue struct {
@@ -32,21 +30,21 @@ type Record struct {
 }
 
 type Topic struct {
-	ID        uuid.UUID `json:"id"`
-	OwnerID   uuid.UUID `json:"owner_id"`
-	StartAt   int32     `json:"start_at"`
-	ExpiredAt int32     `json:"expired_at"`
+	ID        pgtype.UUID `json:"id"`
+	OwnerID   pgtype.UUID `json:"owner_id"`
+	StartAt   int32       `json:"start_at"`
+	ExpiredAt int32       `json:"expired_at"`
 }
 
 type User struct {
-	ID             uuid.UUID `json:"id"`
-	UserName       string    `json:"user_name"`
-	HashedPassword string    `json:"hashed_password"`
+	ID             pgtype.UUID `json:"id"`
+	UserName       string      `json:"user_name"`
+	HashedPassword string      `json:"hashed_password"`
 }
 
 type Voter struct {
-	ID         int32     `json:"id"`
-	UserName   string    `json:"user_name"`
-	TopicID    uuid.UUID `json:"topic_id"`
-	PrivateKey string    `json:"private_key"`
+	ID         int32       `json:"id"`
+	UserName   string      `json:"user_name"`
+	TopicID    pgtype.UUID `json:"topic_id"`
+	PrivateKey string      `json:"private_key"`
 }

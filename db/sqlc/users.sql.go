@@ -8,7 +8,7 @@ package sqlc
 import (
 	"context"
 
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const login = `-- name: Login :one
@@ -23,7 +23,7 @@ type LoginRow struct {
 }
 
 func (q *Queries) Login(ctx context.Context, userName string) (LoginRow, error) {
-	row := q.db.QueryRowContext(ctx, login, userName)
+	row := q.db.QueryRow(ctx, login, userName)
 	var i LoginRow
 	err := row.Scan(&i.UserName, &i.HashedPassword)
 	return i, err
@@ -40,9 +40,9 @@ type SignupParams struct {
 	HashedPassword string `json:"hashed_password"`
 }
 
-func (q *Queries) Signup(ctx context.Context, arg SignupParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, signup, arg.UserName, arg.HashedPassword)
-	var id uuid.UUID
+func (q *Queries) Signup(ctx context.Context, arg SignupParams) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, signup, arg.UserName, arg.HashedPassword)
+	var id pgtype.UUID
 	err := row.Scan(&id)
 	return id, err
 }
