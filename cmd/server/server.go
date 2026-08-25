@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/zukigit/zukivote/db/sqlc"
 	"github.com/zukigit/zukivote/internal/httpserver"
 	"github.com/zukigit/zukivote/internal/services"
 )
@@ -31,7 +30,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	users := services.NewUserService(sqlc.New(pool))
+	users, err := services.NewUserService(pool)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "failed to create user service:", err)
+		os.Exit(1)
+	}
 
 	addr := os.Getenv("ADDR")
 	if addr == "" {
