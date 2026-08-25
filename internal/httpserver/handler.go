@@ -27,7 +27,7 @@ type credentialsRequest struct {
 }
 
 type signupResponse struct {
-	ID string `json:"id"`
+	Message string `json:"message"`
 }
 
 type loginResponse struct {
@@ -45,8 +45,7 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := h.users.Signup(r.Context(), req.UserName, req.Password)
-	if err != nil {
+	if err := h.users.Signup(r.Context(), req.UserName, req.Password); err != nil {
 		switch err {
 		case services.ErrUserExists:
 			writeError(w, http.StatusConflict, "user_name already exists")
@@ -60,7 +59,7 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	writeJSON(w, http.StatusCreated, signupResponse{ID: id.String()})
+	writeJSON(w, http.StatusCreated, signupResponse{Message: "user created"})
 }
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
@@ -73,9 +72,6 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	userName, err := h.users.Login(r.Context(), req.UserName, req.Password)
 	if err != nil {
 		switch err {
-		case services.ErrUserNameOrPasswdIsEmpty:
-			writeError(w, http.StatusBadRequest, err.Error())
-			return
 		case services.ErrUserNameOrPasswdIsEmpty:
 			writeError(w, http.StatusBadRequest, err.Error())
 			return

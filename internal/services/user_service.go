@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/zukigit/zukivote/db/sqlc"
 	"golang.org/x/crypto/bcrypt"
@@ -29,38 +28,34 @@ func NewUserService(pool *pgxpool.Pool) (*UserService, error) {
 	return &UserService{pool: pool}, nil
 }
 
-func (s *UserService) Signup(ctx context.Context, userName, password string) (pgtype.UUID, error) {
+func (s *UserService) Signup(ctx context.Context, userName, password string) error {
 	if userName == "" || password == "" {
-		return pgtype.UUID{}, ErrUserNameOrPasswdIsEmpty
+		return ErrUserNameOrPasswdIsEmpty
 	}
 
 	tx, err := s.pool.Begin(ctx)
 	if err != nil {
-		return pgtype.UUID{}, err
+		return err
 	}
 	defer tx.Rollback(ctx)
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return pgtype.UUID{}, err
+		return err
 	}
 
-	id, err := sqlc.New(tx).Signup(ctx, sqlc.SignupParams{
+	if _, err := sqlc.New(tx).Signup(ctx, sqlc.SignupParams{
 		UserName:       userName,
 		HashedPassword: string(hashed),
-	})
-	if err != nil {
+	}); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			return pgtype.UUID{}, ErrUserExists
+			return ErrUserExists
 		}
-		return pgtype.UUID{}, err
+		return err
 	}
 
-	if err := tx.Commit(ctx); err != nil {
-		return pgtype.UUID{}, err
-	}
-	return id, nil
+	return tx.Commit(ctx)
 }
 
 func (s *UserService) Login(ctx context.Context, userName, password string) (string, error) {
