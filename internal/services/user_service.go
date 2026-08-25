@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	ErrUserExists   = errors.New("user already exists")
-	ErrInvalidCreds = errors.New("invalid credentials")
+	ErrUserExists              = errors.New("user already exists")
+	ErrInvalidCreds            = errors.New("invalid credentials")
+	ErrUserNameOrPasswdIsEmpty = errors.New("user_name and password are required")
 )
 
 type UserService struct {
@@ -24,6 +25,10 @@ func NewUserService(q *sqlc.Queries) *UserService {
 }
 
 func (s *UserService) Signup(ctx context.Context, userName, password string) (pgtype.UUID, error) {
+	if userName == "" || password == "" {
+		return pgtype.UUID{}, ErrUserNameOrPasswdIsEmpty
+	}
+
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return pgtype.UUID{}, err
@@ -44,6 +49,10 @@ func (s *UserService) Signup(ctx context.Context, userName, password string) (pg
 }
 
 func (s *UserService) Login(ctx context.Context, userName, password string) (string, error) {
+	if userName == "" || password == "" {
+		return "", ErrUserNameOrPasswdIsEmpty
+	}
+
 	row, err := s.q.Login(ctx, userName)
 	if err != nil {
 		return "", ErrInvalidCreds

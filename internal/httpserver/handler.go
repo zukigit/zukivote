@@ -2,7 +2,6 @@ package httpserver
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -45,19 +44,20 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
-	if req.UserName == "" || req.Password == "" {
-		writeError(w, http.StatusBadRequest, "user_name and password are required")
-		return
-	}
 
 	id, err := h.users.Signup(r.Context(), req.UserName, req.Password)
 	if err != nil {
-		if errors.Is(err, services.ErrUserExists) {
+		switch err {
+		case services.ErrUserExists:
 			writeError(w, http.StatusConflict, "user_name already exists")
 			return
+		case services.ErrUserNameOrPasswdIsEmpty:
+			writeError(w, http.StatusBadRequest, err.Error())
+			return
+		default:
+			writeError(w, http.StatusInternalServerError, "internal error")
+			return
 		}
-		writeError(w, http.StatusInternalServerError, "internal error")
-		return
 	}
 
 	writeJSON(w, http.StatusCreated, signupResponse{ID: id.String()})
@@ -69,19 +69,23 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
-	if req.UserName == "" || req.Password == "" {
-		writeError(w, http.StatusBadRequest, "user_name and password are required")
-		return
-	}
 
 	userName, err := h.users.Login(r.Context(), req.UserName, req.Password)
 	if err != nil {
-		if errors.Is(err, services.ErrInvalidCreds) {
+		switch err {
+		case services.ErrUserNameOrPasswdIsEmpty:
+			writeError(w, http.StatusBadRequest, err.Error())
+			return
+		case services.ErrUserNameOrPasswdIsEmpty:
+			writeError(w, http.StatusBadRequest, err.Error())
+			return
+		case services.ErrInvalidCreds:
 			writeError(w, http.StatusUnauthorized, "invalid credentials")
 			return
+		default:
+			writeError(w, http.StatusInternalServerError, "internal error")
+			return
 		}
-		writeError(w, http.StatusInternalServerError, "internal error")
-		return
 	}
 
 	writeJSON(w, http.StatusOK, loginResponse{UserName: userName})
