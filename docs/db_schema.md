@@ -19,7 +19,6 @@ erDiagram
 
     VOTERS {
         integer id PK
-        varchar user_name
         uuid topic_id FK
         varchar private_key
     }
@@ -77,11 +76,8 @@ erDiagram
 | Column      | Type     | Constraints                |
 | ----------- | -------- | -------------------------- |
 | id          | INTEGER  | PRIMARY KEY, AUTO INCREMENT |
-| user_name   | VARCHAR  | NOT NULL                   |
 | topic_id    | UUID     | FOREIGN KEY references topics(id) ON DELETE CASCADE |
-| private_key | VARCHAR  | NOT NULL                   |
-
-> UNIQUE constraint on `(topic_id, user_name)`.
+| private_key | VARCHAR  | NOT NULL, UNIQUE           |
 
 ### items
 

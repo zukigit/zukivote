@@ -13,10 +13,8 @@ CREATE TABLE topics (
 
 CREATE TABLE voters (
     id          INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    user_name   VARCHAR NOT NULL,
     topic_id    UUID NOT NULL REFERENCES topics(id) ON DELETE CASCADE,
-    private_key VARCHAR NOT NULL,
-    UNIQUE (topic_id, user_name)
+    private_key VARCHAR NOT NULL UNIQUE
 );
 
 CREATE TABLE items (

@@ -44,7 +44,6 @@ type User struct {
 
 type Voter struct {
 	ID         int32       `json:"id"`
-	UserName   string      `json:"user_name"`
 	TopicID    pgtype.UUID `json:"topic_id"`
 	PrivateKey string      `json:"private_key"`
 }
