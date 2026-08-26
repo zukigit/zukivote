@@ -1,0 +1,22 @@
+info:
+  name: singup
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: 127.0.0.1:8080/signup
+  body:
+    type: json
+    data: |-
+      {
+        "user_name": "{{USER_NAME}}",
+        "password": "{{USER_PASSWD}}"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

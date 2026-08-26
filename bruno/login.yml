@@ -1,0 +1,22 @@
+info:
+  name: login
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: 127.0.0.1:8080/login
+  body:
+    type: json
+    data: |-
+      {
+        "user_name": "{{USER_NAME}}",
+        "password": "{{USER_PASSWD}}"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

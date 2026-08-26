@@ -1,0 +1,6 @@
+name: zukivote@fedora
+variables:
+  - secret: true
+    name: USER_NAME
+  - secret: true
+    name: USER_PASSWD
