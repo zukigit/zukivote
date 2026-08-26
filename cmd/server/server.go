@@ -13,10 +13,15 @@ import (
 func main() {
 	ctx := context.Background()
 
-	dsn := os.Getenv("DATABASE_URL")
-	if dsn == "" {
-		dsn = "postgres://postgres:postgres@localhost:5432/zukivote?sslmode=disable"
+	host := os.Getenv("DB_HOST")
+	if host == "" {
+		host = "localhost"
 	}
+
+	dsn := fmt.Sprintf(
+		"postgres://%s:%s@%s:5432/%s?sslmode=disable",
+		os.Getenv("DB_USER"), os.Getenv("POSTGRES_PASSWORD"), host, os.Getenv("POSTGRES_DB"),
+	)
 
 	pool, err := pgxpool.New(ctx, dsn)
 	if err != nil {
@@ -36,12 +41,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	addr := os.Getenv("ADDR")
-	if addr == "" {
-		addr = ":8080"
-	}
-
-	if err := httpserver.Run(ctx, addr, users); err != nil {
+	if err := httpserver.Run(ctx, ":8080", users); err != nil {
 		fmt.Fprintln(os.Stderr, "http server error:", err)
 		os.Exit(1)
 	}
