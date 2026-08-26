@@ -2,8 +2,6 @@ package services
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
 	"fmt"
 
@@ -38,8 +36,7 @@ type CreateTopicParams struct {
 }
 
 type VoterOutput struct {
-	VoterID    int32
-	PrivateKey string
+	VoterID string
 }
 
 type CreateTopicResult struct {
@@ -101,22 +98,13 @@ func (s *TopicService) CreateTopic(ctx context.Context, params CreateTopicParams
 	result.TopicID = topicID.String()
 
 	for i := int32(0); i < params.VoterCount; i++ {
-		privateKey, err := newPrivateKey()
-		if err != nil {
-			return result, fmt.Errorf("newPrivateKey() failed, err: %s", err.Error())
-		}
-
-		voterID, err := q.CreateVoter(ctx, sqlc.CreateVoterParams{
-			TopicID:    topicID,
-			PrivateKey: privateKey,
-		})
+		voterID, err := q.CreateVoter(ctx, topicID)
 		if err != nil {
 			return result, fmt.Errorf("CreateVoter() failed, err: %s", err.Error())
 		}
 
 		result.Voters = append(result.Voters, VoterOutput{
-			VoterID:    voterID,
-			PrivateKey: privateKey,
+			VoterID: voterID.String(),
 		})
 	}
 
@@ -147,12 +135,4 @@ func (s *TopicService) CreateTopic(ctx context.Context, params CreateTopicParams
 	}
 
 	return result, tx.Commit(ctx)
-}
-
-func newPrivateKey() (string, error) {
-	buf := make([]byte, 16)
-	if _, err := rand.Read(buf); err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(buf), nil
 }

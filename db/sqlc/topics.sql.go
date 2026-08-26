@@ -69,19 +69,14 @@ func (q *Queries) CreateTopic(ctx context.Context, arg CreateTopicParams) (pgtyp
 }
 
 const createVoter = `-- name: CreateVoter :one
-INSERT INTO voters (topic_id, private_key)
-VALUES ($1, $2)
+INSERT INTO voters (topic_id)
+VALUES ($1)
 RETURNING id
 `
 
-type CreateVoterParams struct {
-	TopicID    pgtype.UUID `json:"topic_id"`
-	PrivateKey string      `json:"private_key"`
-}
-
-func (q *Queries) CreateVoter(ctx context.Context, arg CreateVoterParams) (int32, error) {
-	row := q.db.QueryRow(ctx, createVoter, arg.TopicID, arg.PrivateKey)
-	var id int32
+func (q *Queries) CreateVoter(ctx context.Context, topicID pgtype.UUID) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, createVoter, topicID)
+	var id pgtype.UUID
 	err := row.Scan(&id)
 	return id, err
 }

@@ -43,7 +43,6 @@ type User struct {
 }
 
 type Voter struct {
-	ID         int32       `json:"id"`
-	TopicID    pgtype.UUID `json:"topic_id"`
-	PrivateKey string      `json:"private_key"`
+	ID      pgtype.UUID `json:"id"`
+	TopicID pgtype.UUID `json:"topic_id"`
 }

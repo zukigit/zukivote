@@ -12,9 +12,8 @@ CREATE TABLE topics (
 );
 
 CREATE TABLE voters (
-    id          INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    topic_id    UUID NOT NULL REFERENCES topics(id) ON DELETE CASCADE,
-    private_key VARCHAR NOT NULL UNIQUE
+    id       UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    topic_id UUID NOT NULL REFERENCES topics(id) ON DELETE CASCADE
 );
 
 CREATE TABLE items (

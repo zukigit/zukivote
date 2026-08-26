@@ -4,8 +4,8 @@ VALUES ($1, $2, $3)
 RETURNING id;
 
 -- name: CreateVoter :one
-INSERT INTO voters (topic_id, private_key)
-VALUES ($1, $2)
+INSERT INTO voters (topic_id)
+VALUES ($1)
 RETURNING id;
 
 -- name: CreateItem :one
