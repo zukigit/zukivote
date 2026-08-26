@@ -3,7 +3,9 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/zukigit/zukivote/db/sqlc"
@@ -65,11 +67,17 @@ func (s *UserService) Login(ctx context.Context, userName, password string) (str
 
 	row, err := sqlc.New(s.pool).Login(ctx, userName)
 	if err != nil {
-		return "", ErrInvalidCreds
+		switch err {
+		case pgx.ErrNoRows:
+			return "", ErrInvalidCreds
+		default:
+			return "", fmt.Errorf("Login() failed, err: %s", err.Error())
+		}
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(row.HashedPassword), []byte(password)); err != nil {
 		return "", ErrInvalidCreds
 	}
+
 	return row.UserName, nil
 }
