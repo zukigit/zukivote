@@ -4,7 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -20,17 +23,30 @@ var (
 	ErrNilPool                 = errors.New("pool cannot be nil")
 	ErrInvalidTopicParams      = errors.New("invalid topic params")
 	ErrEmptyItemValue          = errors.New("item value key and value are required")
+	ErrMissingJWTSecret        = errors.New("jwt secret key is required")
 )
 
+const jwtTTL = 24 * time.Hour
+
+type CustomClaims struct {
+	ID string `json:"id"`
+	jwt.RegisteredClaims
+}
+
 type Service struct {
-	pool *pgxpool.Pool
+	pool      *pgxpool.Pool
+	jwtSecret []byte
 }
 
 func NewService(pool *pgxpool.Pool) (*Service, error) {
 	if pool == nil {
 		return nil, ErrNilPool
 	}
-	return &Service{pool: pool}, nil
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		return nil, ErrMissingJWTSecret
+	}
+	return &Service{pool: pool, jwtSecret: []byte(secret)}, nil
 }
 
 func (s *Service) Signup(ctx context.Context, userName, password string) error {
@@ -82,7 +98,14 @@ func (s *Service) Login(ctx context.Context, userName, password string) (string,
 		return "", ErrInvalidCreds
 	}
 
-	return row.UserName, nil
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, CustomClaims{
+		ID: row.ID.String(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(jwtTTL)),
+		},
+	})
+
+	return token.SignedString(s.jwtSecret)
 }
 
 type ItemValueInput struct {

@@ -30,7 +30,7 @@ type signupResponse struct {
 }
 
 type loginResponse struct {
-	UserName string `json:"user_name"`
+	Token string `json:"token"`
 }
 
 type errorResponse struct {
@@ -78,7 +78,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userName, err := h.users.Login(r.Context(), req.UserName, req.Password)
+	token, err := h.users.Login(r.Context(), req.UserName, req.Password)
 	if err != nil {
 		switch err {
 		case ErrUserNameOrPasswdIsEmpty:
@@ -93,5 +93,5 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	writeJSON(w, http.StatusOK, loginResponse{UserName: userName})
+	writeJSON(w, http.StatusOK, loginResponse{Token: token})
 }

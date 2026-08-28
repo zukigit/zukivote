@@ -12,20 +12,20 @@ import (
 )
 
 const login = `-- name: Login :one
-SELECT user_name, hashed_password
+SELECT id, hashed_password
 FROM users
 WHERE user_name = $1
 `
 
 type LoginRow struct {
-	UserName       string `json:"user_name"`
-	HashedPassword string `json:"hashed_password"`
+	ID             pgtype.UUID `json:"id"`
+	HashedPassword string      `json:"hashed_password"`
 }
 
 func (q *Queries) Login(ctx context.Context, userName string) (LoginRow, error) {
 	row := q.db.QueryRow(ctx, login, userName)
 	var i LoginRow
-	err := row.Scan(&i.UserName, &i.HashedPassword)
+	err := row.Scan(&i.ID, &i.HashedPassword)
 	return i, err
 }
 
