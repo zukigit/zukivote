@@ -26,11 +26,6 @@ func (h *Handler) Register(r *mux.Router) {
 	protected.HandleFunc("", h.CreateTopic).Methods(http.MethodPost)
 }
 
-type credentialsRequest struct {
-	UserName string `json:"user_name"`
-	Password string `json:"password"`
-}
-
 type signupResponse struct {
 	Message string `json:"message"`
 }
@@ -63,13 +58,7 @@ func writeServiceError(w http.ResponseWriter, err error) bool {
 }
 
 func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
-	var req credentialsRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid request body")
-		return
-	}
-
-	if err := h.users.Signup(r.Context(), req.UserName, req.Password); err != nil {
+	if err := h.users.Signup(r.Context(), r.Body); err != nil {
 		if !writeServiceError(w, err) {
 			writeError(w, http.StatusInternalServerError, "internal error")
 		}
@@ -80,13 +69,7 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
-	var req credentialsRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid request body")
-		return
-	}
-
-	token, err := h.users.Login(r.Context(), req.UserName, req.Password)
+	token, err := h.users.Login(r.Context(), r.Body)
 	if err != nil {
 		if !writeServiceError(w, err) {
 			writeError(w, http.StatusInternalServerError, "internal error")
@@ -134,13 +117,7 @@ func (h *Handler) CreateTopic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req CreateTopicRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid request body")
-		return
-	}
-
-	result, err := h.users.CreateTopic(r.Context(), userID, req)
+	result, err := h.users.CreateTopic(r.Context(), userID, r.Body)
 	if err != nil {
 		if !writeServiceError(w, err) {
 			writeError(w, http.StatusInternalServerError, "internal error")

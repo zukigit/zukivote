@@ -2,8 +2,10 @@ package internal
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -39,6 +41,7 @@ var (
 	ErrEmptyItemValue          = &ServiceError{StatusCode: http.StatusBadRequest, Message: "item value key and value are required"}
 	ErrMissingJWTSecret        = &ServiceError{StatusCode: http.StatusInternalServerError, Message: "jwt secret key is required"}
 	ErrInvalidToken            = &ServiceError{StatusCode: http.StatusUnauthorized, Message: "invalid token"}
+	ErrInvalidJSON             = &ServiceError{StatusCode: http.StatusBadRequest, Message: "invalid request body"}
 )
 
 const jwtTTL = 24 * time.Hour
@@ -63,8 +66,13 @@ func NewService(pool *pgxpool.Pool, jwtSecret string) (*Service, error) {
 	return &Service{pool: pool, jwtSecret: []byte(jwtSecret)}, nil
 }
 
-func (s *Service) Signup(ctx context.Context, userName, password string) error {
-	if userName == "" || password == "" {
+func (s *Service) Signup(ctx context.Context, body io.Reader) error {
+	var req credentialsRequest
+	if err := json.NewDecoder(body).Decode(&req); err != nil {
+		return ErrInvalidJSON
+	}
+
+	if req.UserName == "" || req.Password == "" {
 		return ErrUserNameOrPasswdIsEmpty
 	}
 
@@ -74,13 +82,13 @@ func (s *Service) Signup(ctx context.Context, userName, password string) error {
 	}
 	defer tx.Rollback(ctx)
 
-	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hashed, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return internalError(err.Error())
 	}
 
 	if _, err := sqlc.New(tx).Signup(ctx, sqlc.SignupParams{
-		UserName:       userName,
+		UserName:       req.UserName,
 		HashedPassword: string(hashed),
 	}); err != nil {
 		var pgErr *pgconn.PgError
@@ -96,12 +104,17 @@ func (s *Service) Signup(ctx context.Context, userName, password string) error {
 	return nil
 }
 
-func (s *Service) Login(ctx context.Context, userName, password string) (string, error) {
-	if userName == "" || password == "" {
+func (s *Service) Login(ctx context.Context, body io.Reader) (string, error) {
+	var req credentialsRequest
+	if err := json.NewDecoder(body).Decode(&req); err != nil {
+		return "", ErrInvalidJSON
+	}
+
+	if req.UserName == "" || req.Password == "" {
 		return "", ErrUserNameOrPasswdIsEmpty
 	}
 
-	row, err := sqlc.New(s.pool).Login(ctx, userName)
+	row, err := sqlc.New(s.pool).Login(ctx, req.UserName)
 	if err != nil {
 		switch err {
 		case pgx.ErrNoRows:
@@ -111,7 +124,7 @@ func (s *Service) Login(ctx context.Context, userName, password string) (string,
 		}
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(row.HashedPassword), []byte(password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(row.HashedPassword), []byte(req.Password)); err != nil {
 		return "", ErrInvalidCreds
 	}
 
@@ -149,6 +162,11 @@ func (s *Service) ValidateToken(authHeader string) (string, error) {
 	return claims.ID, nil
 }
 
+type credentialsRequest struct {
+	UserName string `json:"user_name"`
+	Password string `json:"password"`
+}
+
 type CreateTopicRequest struct {
 	StartAt    int32             `json:"start_at"`
 	ExpiredAt  int32             `json:"expired_at"`
@@ -173,8 +191,13 @@ type CreateTopicResult struct {
 	ItemIDs []int32
 }
 
-func (s *Service) CreateTopic(ctx context.Context, ownerID string, req CreateTopicRequest) (CreateTopicResult, error) {
+func (s *Service) CreateTopic(ctx context.Context, ownerID string, body io.Reader) (CreateTopicResult, error) {
 	var result CreateTopicResult
+
+	var req CreateTopicRequest
+	if err := json.NewDecoder(body).Decode(&req); err != nil {
+		return result, ErrInvalidJSON
+	}
 
 	if ownerID == "" || req.VoterCount <= 0 || len(req.Items) == 0 {
 		return result, ErrInvalidTopicParams
