@@ -50,10 +50,11 @@ func writeError(w http.ResponseWriter, status int, msg string) {
 
 func writeServiceError(w http.ResponseWriter, err error) {
 	var svcErr *ServiceError
-	if errors.As(err, &svcErr) {
+	if svcErr != nil && errors.As(err, &svcErr) {
 		writeError(w, svcErr.StatusCode, svcErr.Message)
 		return
 	}
+
 	writeError(w, http.StatusInternalServerError, "internal error")
 }
 
