@@ -1,18 +1,17 @@
-package httpserver
+package internal
 
 import (
 	"encoding/json"
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/zukigit/zukivote/internal/services"
 )
 
 type Handler struct {
-	users *services.UserService
+	users *UserService
 }
 
-func NewHandler(users *services.UserService) *Handler {
+func NewHandler(users *UserService) *Handler {
 	return &Handler{users: users}
 }
 
@@ -57,10 +56,10 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.users.Signup(r.Context(), req.UserName, req.Password); err != nil {
 		switch err {
-		case services.ErrUserExists:
+		case ErrUserExists:
 			writeError(w, http.StatusConflict, "user_name already exists")
 			return
-		case services.ErrUserNameOrPasswdIsEmpty:
+		case ErrUserNameOrPasswdIsEmpty:
 			writeError(w, http.StatusBadRequest, err.Error())
 			return
 		default:
@@ -82,10 +81,10 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	userName, err := h.users.Login(r.Context(), req.UserName, req.Password)
 	if err != nil {
 		switch err {
-		case services.ErrUserNameOrPasswdIsEmpty:
+		case ErrUserNameOrPasswdIsEmpty:
 			writeError(w, http.StatusBadRequest, err.Error())
 			return
-		case services.ErrInvalidCreds:
+		case ErrInvalidCreds:
 			writeError(w, http.StatusUnauthorized, "invalid credentials")
 			return
 		default:

@@ -2,12 +2,15 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
 	"os"
+	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/zukigit/zukivote/internal/httpserver"
-	"github.com/zukigit/zukivote/internal/services"
+	"github.com/zukigit/zukivote/internal"
 )
 
 func main() {
@@ -35,13 +38,30 @@ func main() {
 		os.Exit(1)
 	}
 
-	users, err := services.NewUserService(pool)
+	users, err := internal.NewUserService(pool)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "failed to create user service:", err)
 		os.Exit(1)
 	}
 
-	if err := httpserver.Run(ctx, ":8080", users); err != nil {
+	r := mux.NewRouter()
+	internal.NewHandler(users).Register(r)
+
+	srv := &http.Server{
+		Addr:    ":8080",
+		Handler: r,
+	}
+
+	go func() {
+		<-ctx.Done()
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := srv.Shutdown(shutdownCtx); err != nil {
+			srv.Close()
+		}
+	}()
+
+	if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 		fmt.Fprintln(os.Stderr, "http server error:", err)
 		os.Exit(1)
 	}
