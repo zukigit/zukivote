@@ -48,20 +48,18 @@ func writeError(w http.ResponseWriter, status int, msg string) {
 	writeJSON(w, status, errorResponse{Error: msg})
 }
 
-func writeServiceError(w http.ResponseWriter, err error) bool {
+func writeServiceError(w http.ResponseWriter, err error) {
 	var svcErr *ServiceError
 	if errors.As(err, &svcErr) {
 		writeError(w, svcErr.StatusCode, svcErr.Message)
-		return true
+		return
 	}
-	return false
+	writeError(w, http.StatusInternalServerError, "internal error")
 }
 
 func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 	if err := h.users.Signup(r.Context(), r.Body); err != nil {
-		if !writeServiceError(w, err) {
-			writeError(w, http.StatusInternalServerError, "internal error")
-		}
+		writeServiceError(w, err)
 		return
 	}
 
@@ -71,9 +69,7 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	token, err := h.users.Login(r.Context(), r.Body)
 	if err != nil {
-		if !writeServiceError(w, err) {
-			writeError(w, http.StatusInternalServerError, "internal error")
-		}
+		writeServiceError(w, err)
 		return
 	}
 
@@ -84,9 +80,7 @@ func (h *Handler) authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userID, err := h.users.ValidateToken(r.Header.Get("Authorization"))
 		if err != nil {
-			if !writeServiceError(w, err) {
-				writeError(w, http.StatusUnauthorized, "invalid token")
-			}
+			writeServiceError(w, err)
 			return
 		}
 
@@ -104,9 +98,7 @@ type createTopicResponse struct {
 func (h *Handler) CreateTopic(w http.ResponseWriter, r *http.Request) {
 	result, err := h.users.CreateTopic(r.Context(), r.Body)
 	if err != nil {
-		if !writeServiceError(w, err) {
-			writeError(w, http.StatusInternalServerError, "internal error")
-		}
+		writeServiceError(w, err)
 		return
 	}
 
