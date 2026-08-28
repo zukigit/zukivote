@@ -80,15 +80,6 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, loginResponse{Token: token})
 }
 
-type contextKey string
-
-const userIDKey contextKey = "user_id"
-
-func userIDFromContext(ctx context.Context) (string, bool) {
-	id, ok := ctx.Value(userIDKey).(string)
-	return id, ok
-}
-
 func (h *Handler) authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userID, err := h.users.ValidateToken(r.Header.Get("Authorization"))
@@ -111,13 +102,7 @@ type createTopicResponse struct {
 }
 
 func (h *Handler) CreateTopic(w http.ResponseWriter, r *http.Request) {
-	userID, ok := userIDFromContext(r.Context())
-	if !ok {
-		writeError(w, http.StatusUnauthorized, "unauthenticated")
-		return
-	}
-
-	result, err := h.users.CreateTopic(r.Context(), userID, r.Body)
+	result, err := h.users.CreateTopic(r.Context(), r.Body)
 	if err != nil {
 		if !writeServiceError(w, err) {
 			writeError(w, http.StatusInternalServerError, "internal error")

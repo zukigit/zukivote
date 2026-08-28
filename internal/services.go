@@ -42,9 +42,19 @@ var (
 	ErrMissingJWTSecret        = &ServiceError{StatusCode: http.StatusInternalServerError, Message: "jwt secret key is required"}
 	ErrInvalidToken            = &ServiceError{StatusCode: http.StatusUnauthorized, Message: "invalid token"}
 	ErrInvalidJSON             = &ServiceError{StatusCode: http.StatusBadRequest, Message: "invalid request body"}
+	ErrUnauthenticated         = &ServiceError{StatusCode: http.StatusUnauthorized, Message: "unauthenticated"}
 )
 
 const jwtTTL = 24 * time.Hour
+
+type contextKey string
+
+const userIDKey contextKey = "user_id"
+
+func userIDFromContext(ctx context.Context) (string, bool) {
+	id, ok := ctx.Value(userIDKey).(string)
+	return id, ok
+}
 
 type CustomClaims struct {
 	ID string `json:"id"`
@@ -191,8 +201,13 @@ type CreateTopicResult struct {
 	ItemIDs []int32
 }
 
-func (s *Service) CreateTopic(ctx context.Context, ownerID string, body io.Reader) (CreateTopicResult, error) {
+func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (CreateTopicResult, error) {
 	var result CreateTopicResult
+
+	ownerID, ok := userIDFromContext(ctx)
+	if !ok {
+		return result, ErrUnauthenticated
+	}
 
 	var req CreateTopicRequest
 	if err := json.NewDecoder(body).Decode(&req); err != nil {
