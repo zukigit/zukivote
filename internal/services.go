@@ -128,42 +128,37 @@ func (s *Service) ValidateToken(authHeader string) (string, error) {
 	return claims.ID, nil
 }
 
-type ItemValueInput struct {
-	Key   string
-	Value string
+type CreateTopicRequest struct {
+	StartAt    int32             `json:"start_at"`
+	ExpiredAt  int32             `json:"expired_at"`
+	VoterCount int32             `json:"voter_count"`
+	Items      []CreateTopicItem `json:"items"`
 }
 
-type ItemInput struct {
-	Description string
-	PhotoURL    string
-	Values      []ItemValueInput
+type CreateTopicItem struct {
+	Description string             `json:"description"`
+	PhotoURL    string             `json:"photo_url"`
+	Values      []CreateTopicValue `json:"values"`
 }
 
-type CreateTopicParams struct {
-	OwnerID    string
-	StartAt    int32
-	ExpiredAt  int32
-	VoterCount int32
-	Items      []ItemInput
-}
-
-type VoterOutput struct {
-	VoterID string
+type CreateTopicValue struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 type CreateTopicResult struct {
 	TopicID string
-	Voters  []VoterOutput
+	Voters  []string
 	ItemIDs []int32
 }
 
-func (s *Service) CreateTopic(ctx context.Context, params CreateTopicParams) (CreateTopicResult, error) {
+func (s *Service) CreateTopic(ctx context.Context, ownerID string, req CreateTopicRequest) (CreateTopicResult, error) {
 	var result CreateTopicResult
 
-	if params.OwnerID == "" || params.VoterCount <= 0 || len(params.Items) == 0 {
+	if ownerID == "" || req.VoterCount <= 0 || len(req.Items) == 0 {
 		return result, ErrInvalidTopicParams
 	}
-	for _, item := range params.Items {
+	for _, item := range req.Items {
 		if item.Description == "" {
 			return result, ErrInvalidTopicParams
 		}
@@ -174,8 +169,8 @@ func (s *Service) CreateTopic(ctx context.Context, params CreateTopicParams) (Cr
 		}
 	}
 
-	var ownerID pgtype.UUID
-	if err := ownerID.Scan(params.OwnerID); err != nil {
+	var owner pgtype.UUID
+	if err := owner.Scan(ownerID); err != nil {
 		return result, ErrInvalidTopicParams
 	}
 
@@ -188,9 +183,9 @@ func (s *Service) CreateTopic(ctx context.Context, params CreateTopicParams) (Cr
 	q := sqlc.New(tx)
 
 	topicID, err := q.CreateTopic(ctx, sqlc.CreateTopicParams{
-		OwnerID:   ownerID,
-		StartAt:   params.StartAt,
-		ExpiredAt: params.ExpiredAt,
+		OwnerID:   owner,
+		StartAt:   req.StartAt,
+		ExpiredAt: req.ExpiredAt,
 	})
 	if err != nil {
 		return result, fmt.Errorf("CreateTopic() failed, err: %s", err.Error())
@@ -198,18 +193,15 @@ func (s *Service) CreateTopic(ctx context.Context, params CreateTopicParams) (Cr
 
 	result.TopicID = topicID.String()
 
-	for i := int32(0); i < params.VoterCount; i++ {
+	for i := int32(0); i < req.VoterCount; i++ {
 		voterID, err := q.CreateVoter(ctx, topicID)
 		if err != nil {
 			return result, fmt.Errorf("CreateVoter() failed, err: %s", err.Error())
 		}
-
-		result.Voters = append(result.Voters, VoterOutput{
-			VoterID: voterID.String(),
-		})
+		result.Voters = append(result.Voters, voterID.String())
 	}
 
-	for _, item := range params.Items {
+	for _, item := range req.Items {
 		itemID, err := q.CreateItem(ctx, sqlc.CreateItemParams{
 			TopicID:     topicID,
 			Description: item.Description,

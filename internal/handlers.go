@@ -123,24 +123,6 @@ func (h *Handler) authMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-type itemValueInput struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
-}
-
-type itemInput struct {
-	Description string           `json:"description"`
-	PhotoURL    string           `json:"photo_url"`
-	Values      []itemValueInput `json:"values"`
-}
-
-type createTopicRequest struct {
-	StartAt    int32       `json:"start_at"`
-	ExpiredAt  int32       `json:"expired_at"`
-	VoterCount int32       `json:"voter_count"`
-	Items      []itemInput `json:"items"`
-}
-
 type createTopicResponse struct {
 	TopicID string   `json:"topic_id"`
 	Voters  []string `json:"voters"`
@@ -154,32 +136,13 @@ func (h *Handler) CreateTopic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req createTopicRequest
+	var req CreateTopicRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	items := make([]ItemInput, 0, len(req.Items))
-	for _, item := range req.Items {
-		values := make([]ItemValueInput, 0, len(item.Values))
-		for _, value := range item.Values {
-			values = append(values, ItemValueInput{Key: value.Key, Value: value.Value})
-		}
-		items = append(items, ItemInput{
-			Description: item.Description,
-			PhotoURL:    item.PhotoURL,
-			Values:      values,
-		})
-	}
-
-	result, err := h.users.CreateTopic(r.Context(), CreateTopicParams{
-		OwnerID:    userID,
-		StartAt:    req.StartAt,
-		ExpiredAt:  req.ExpiredAt,
-		VoterCount: req.VoterCount,
-		Items:      items,
-	})
+	result, err := h.users.CreateTopic(r.Context(), userID, req)
 	if err != nil {
 		switch err {
 		case ErrInvalidTopicParams, ErrEmptyItemValue:
@@ -191,14 +154,9 @@ func (h *Handler) CreateTopic(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	voters := make([]string, 0, len(result.Voters))
-	for _, voter := range result.Voters {
-		voters = append(voters, voter.VoterID)
-	}
-
 	writeJSON(w, http.StatusCreated, createTopicResponse{
 		TopicID: result.TopicID,
-		Voters:  voters,
+		Voters:  result.Voters,
 		ItemIDs: result.ItemIDs,
 	})
 }
