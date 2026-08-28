@@ -22,18 +22,18 @@ var (
 	ErrEmptyItemValue          = errors.New("item value key and value are required")
 )
 
-type UserService struct {
+type Service struct {
 	pool *pgxpool.Pool
 }
 
-func NewUserService(pool *pgxpool.Pool) (*UserService, error) {
+func NewService(pool *pgxpool.Pool) (*Service, error) {
 	if pool == nil {
 		return nil, ErrNilPool
 	}
-	return &UserService{pool: pool}, nil
+	return &Service{pool: pool}, nil
 }
 
-func (s *UserService) Signup(ctx context.Context, userName, password string) error {
+func (s *Service) Signup(ctx context.Context, userName, password string) error {
 	if userName == "" || password == "" {
 		return ErrUserNameOrPasswdIsEmpty
 	}
@@ -63,7 +63,7 @@ func (s *UserService) Signup(ctx context.Context, userName, password string) err
 	return tx.Commit(ctx)
 }
 
-func (s *UserService) Login(ctx context.Context, userName, password string) (string, error) {
+func (s *Service) Login(ctx context.Context, userName, password string) (string, error) {
 	if userName == "" || password == "" {
 		return "", ErrUserNameOrPasswdIsEmpty
 	}
@@ -114,18 +114,7 @@ type CreateTopicResult struct {
 	ItemIDs []int32
 }
 
-type TopicService struct {
-	pool *pgxpool.Pool
-}
-
-func NewTopicService(pool *pgxpool.Pool) (*TopicService, error) {
-	if pool == nil {
-		return nil, ErrNilPool
-	}
-	return &TopicService{pool: pool}, nil
-}
-
-func (s *TopicService) CreateTopic(ctx context.Context, params CreateTopicParams) (CreateTopicResult, error) {
+func (s *Service) CreateTopic(ctx context.Context, params CreateTopicParams) (CreateTopicResult, error) {
 	var result CreateTopicResult
 
 	if params.OwnerID == "" || params.VoterCount <= 0 || len(params.Items) == 0 {

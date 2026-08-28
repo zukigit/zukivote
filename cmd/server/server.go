@@ -38,14 +38,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	users, err := internal.NewUserService(pool)
+	svc, err := internal.NewService(pool)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "failed to create user service:", err)
+		fmt.Fprintln(os.Stderr, "failed to create service:", err)
 		os.Exit(1)
 	}
 
 	r := mux.NewRouter()
-	internal.NewHandler(users).Register(r)
+	internal.NewHandler(svc).Register(r)
 
 	srv := &http.Server{
 		Addr:    ":8080",
