@@ -186,7 +186,6 @@ type CreateTopicRequest struct {
 
 type CreateTopicItem struct {
 	Description string             `json:"description"`
-	PhotoURL    string             `json:"photo_url"`
 	Values      []CreateTopicValue `json:"values"`
 }
 
@@ -264,10 +263,7 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (CreateTopicR
 		itemID, err := q.CreateItem(ctx, sqlc.CreateItemParams{
 			TopicID:     topicID,
 			Description: item.Description,
-			PhotoUrl: pgtype.Text{
-				String: item.PhotoURL,
-				Valid:  item.PhotoURL != "",
-			},
+			PhotoUrl:    pgtype.Text{},
 		})
 		if err != nil {
 			return result, internalError(fmt.Sprintf("CreateItem() failed, err: %s", err.Error()))

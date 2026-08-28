@@ -70,7 +70,6 @@ Authorization: Bearer <jwt>
   "items": [
     {
       "description": "Option A",
-      "photo_url": "https://example.com/a.png",
       "values": [
         { "key": "color", "value": "red" }
       ]
@@ -91,6 +90,5 @@ Authorization: Bearer <jwt>
 **Notes**
 
 - `start_at` and `expired_at` are unix timestamps.
-- `photo_url` is optional.
 - The authenticated user becomes the topic owner (`owner_id`).
 - `voter_count` voters are created along with the topic.
