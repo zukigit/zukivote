@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -23,6 +24,7 @@ var (
 	ErrInvalidTopicParams      = errors.New("invalid topic params")
 	ErrEmptyItemValue          = errors.New("item value key and value are required")
 	ErrMissingJWTSecret        = errors.New("jwt secret key is required")
+	ErrInvalidToken            = errors.New("invalid token")
 )
 
 const jwtTTL = 24 * time.Hour
@@ -104,6 +106,26 @@ func (s *Service) Login(ctx context.Context, userName, password string) (string,
 	})
 
 	return token.SignedString(s.jwtSecret)
+}
+
+func (s *Service) ValidateToken(authHeader string) (string, error) {
+	const prefix = "Bearer "
+	if !strings.HasPrefix(authHeader, prefix) {
+		return "", ErrInvalidToken
+	}
+	tokenString := strings.TrimPrefix(authHeader, prefix)
+
+	claims := &CustomClaims{}
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (any, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, ErrInvalidToken
+		}
+		return s.jwtSecret, nil
+	})
+	if err != nil || !token.Valid {
+		return "", ErrInvalidToken
+	}
+	return claims.ID, nil
 }
 
 type ItemValueInput struct {
