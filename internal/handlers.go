@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -52,6 +53,15 @@ func writeError(w http.ResponseWriter, status int, msg string) {
 	writeJSON(w, status, errorResponse{Error: msg})
 }
 
+func writeServiceError(w http.ResponseWriter, err error) bool {
+	var svcErr *ServiceError
+	if errors.As(err, &svcErr) {
+		writeError(w, svcErr.StatusCode, svcErr.Message)
+		return true
+	}
+	return false
+}
+
 func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 	var req credentialsRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -60,17 +70,10 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.users.Signup(r.Context(), req.UserName, req.Password); err != nil {
-		switch err {
-		case ErrUserExists:
-			writeError(w, http.StatusConflict, "user_name already exists")
-			return
-		case ErrUserNameOrPasswdIsEmpty:
-			writeError(w, http.StatusBadRequest, err.Error())
-			return
-		default:
+		if !writeServiceError(w, err) {
 			writeError(w, http.StatusInternalServerError, "internal error")
-			return
 		}
+		return
 	}
 
 	writeJSON(w, http.StatusCreated, signupResponse{Message: "user created"})
@@ -85,17 +88,10 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	token, err := h.users.Login(r.Context(), req.UserName, req.Password)
 	if err != nil {
-		switch err {
-		case ErrUserNameOrPasswdIsEmpty:
-			writeError(w, http.StatusBadRequest, err.Error())
-			return
-		case ErrInvalidCreds:
-			writeError(w, http.StatusUnauthorized, "invalid credentials")
-			return
-		default:
+		if !writeServiceError(w, err) {
 			writeError(w, http.StatusInternalServerError, "internal error")
-			return
 		}
+		return
 	}
 
 	writeJSON(w, http.StatusOK, loginResponse{Token: token})
@@ -114,7 +110,9 @@ func (h *Handler) authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userID, err := h.users.ValidateToken(r.Header.Get("Authorization"))
 		if err != nil {
-			writeError(w, http.StatusUnauthorized, err.Error())
+			if !writeServiceError(w, err) {
+				writeError(w, http.StatusUnauthorized, "invalid token")
+			}
 			return
 		}
 
@@ -144,14 +142,10 @@ func (h *Handler) CreateTopic(w http.ResponseWriter, r *http.Request) {
 
 	result, err := h.users.CreateTopic(r.Context(), userID, req)
 	if err != nil {
-		switch err {
-		case ErrInvalidTopicParams, ErrEmptyItemValue:
-			writeError(w, http.StatusBadRequest, err.Error())
-			return
-		default:
+		if !writeServiceError(w, err) {
 			writeError(w, http.StatusInternalServerError, "internal error")
-			return
 		}
+		return
 	}
 
 	writeJSON(w, http.StatusCreated, createTopicResponse{

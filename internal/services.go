@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
@@ -16,15 +17,28 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type ServiceError struct {
+	StatusCode int
+	Message    string
+}
+
+func (e *ServiceError) Error() string {
+	return e.Message
+}
+
+func internalError(msg string) *ServiceError {
+	return &ServiceError{StatusCode: http.StatusInternalServerError, Message: msg}
+}
+
 var (
-	ErrUserExists              = errors.New("user already exists")
-	ErrInvalidCreds            = errors.New("invalid credentials")
-	ErrUserNameOrPasswdIsEmpty = errors.New("user_name and password are required")
-	ErrNilPool                 = errors.New("pool cannot be nil")
-	ErrInvalidTopicParams      = errors.New("invalid topic params")
-	ErrEmptyItemValue          = errors.New("item value key and value are required")
-	ErrMissingJWTSecret        = errors.New("jwt secret key is required")
-	ErrInvalidToken            = errors.New("invalid token")
+	ErrUserExists              = &ServiceError{StatusCode: http.StatusConflict, Message: "user already exists"}
+	ErrInvalidCreds            = &ServiceError{StatusCode: http.StatusUnauthorized, Message: "invalid credentials"}
+	ErrUserNameOrPasswdIsEmpty = &ServiceError{StatusCode: http.StatusBadRequest, Message: "user_name and password are required"}
+	ErrNilPool                 = &ServiceError{StatusCode: http.StatusInternalServerError, Message: "pool cannot be nil"}
+	ErrInvalidTopicParams      = &ServiceError{StatusCode: http.StatusBadRequest, Message: "invalid topic params"}
+	ErrEmptyItemValue          = &ServiceError{StatusCode: http.StatusBadRequest, Message: "item value key and value are required"}
+	ErrMissingJWTSecret        = &ServiceError{StatusCode: http.StatusInternalServerError, Message: "jwt secret key is required"}
+	ErrInvalidToken            = &ServiceError{StatusCode: http.StatusUnauthorized, Message: "invalid token"}
 )
 
 const jwtTTL = 24 * time.Hour
@@ -56,13 +70,13 @@ func (s *Service) Signup(ctx context.Context, userName, password string) error {
 
 	tx, err := s.pool.Begin(ctx)
 	if err != nil {
-		return err
+		return internalError(err.Error())
 	}
 	defer tx.Rollback(ctx)
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return err
+		return internalError(err.Error())
 	}
 
 	if _, err := sqlc.New(tx).Signup(ctx, sqlc.SignupParams{
@@ -73,10 +87,13 @@ func (s *Service) Signup(ctx context.Context, userName, password string) error {
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 			return ErrUserExists
 		}
-		return err
+		return internalError(err.Error())
 	}
 
-	return tx.Commit(ctx)
+	if err := tx.Commit(ctx); err != nil {
+		return internalError(err.Error())
+	}
+	return nil
 }
 
 func (s *Service) Login(ctx context.Context, userName, password string) (string, error) {
@@ -90,7 +107,7 @@ func (s *Service) Login(ctx context.Context, userName, password string) (string,
 		case pgx.ErrNoRows:
 			return "", ErrInvalidCreds
 		default:
-			return "", fmt.Errorf("Login() failed, err: %s", err.Error())
+			return "", internalError(fmt.Sprintf("Login() failed, err: %s", err.Error()))
 		}
 	}
 
@@ -105,7 +122,11 @@ func (s *Service) Login(ctx context.Context, userName, password string) (string,
 		},
 	})
 
-	return token.SignedString(s.jwtSecret)
+	signed, err := token.SignedString(s.jwtSecret)
+	if err != nil {
+		return "", internalError(err.Error())
+	}
+	return signed, nil
 }
 
 func (s *Service) ValidateToken(authHeader string) (string, error) {
@@ -176,7 +197,7 @@ func (s *Service) CreateTopic(ctx context.Context, ownerID string, req CreateTop
 
 	tx, err := s.pool.Begin(ctx)
 	if err != nil {
-		return result, err
+		return result, internalError(err.Error())
 	}
 	defer tx.Rollback(ctx)
 
@@ -188,7 +209,7 @@ func (s *Service) CreateTopic(ctx context.Context, ownerID string, req CreateTop
 		ExpiredAt: req.ExpiredAt,
 	})
 	if err != nil {
-		return result, fmt.Errorf("CreateTopic() failed, err: %s", err.Error())
+		return result, internalError(fmt.Sprintf("CreateTopic() failed, err: %s", err.Error()))
 	}
 
 	result.TopicID = topicID.String()
@@ -196,7 +217,7 @@ func (s *Service) CreateTopic(ctx context.Context, ownerID string, req CreateTop
 	for i := int32(0); i < req.VoterCount; i++ {
 		voterID, err := q.CreateVoter(ctx, topicID)
 		if err != nil {
-			return result, fmt.Errorf("CreateVoter() failed, err: %s", err.Error())
+			return result, internalError(fmt.Sprintf("CreateVoter() failed, err: %s", err.Error()))
 		}
 		result.Voters = append(result.Voters, voterID.String())
 	}
@@ -211,7 +232,7 @@ func (s *Service) CreateTopic(ctx context.Context, ownerID string, req CreateTop
 			},
 		})
 		if err != nil {
-			return result, fmt.Errorf("CreateItem() failed, err: %s", err.Error())
+			return result, internalError(fmt.Sprintf("CreateItem() failed, err: %s", err.Error()))
 		}
 
 		for _, value := range item.Values {
@@ -220,12 +241,15 @@ func (s *Service) CreateTopic(ctx context.Context, ownerID string, req CreateTop
 				Key:    value.Key,
 				Value:  value.Value,
 			}); err != nil {
-				return result, fmt.Errorf("CreateItemValue() failed, err: %s", err.Error())
+				return result, internalError(fmt.Sprintf("CreateItemValue() failed, err: %s", err.Error()))
 			}
 		}
 
 		result.ItemIDs = append(result.ItemIDs, itemID)
 	}
 
-	return result, tx.Commit(ctx)
+	if err := tx.Commit(ctx); err != nil {
+		return result, internalError(err.Error())
+	}
+	return result, nil
 }
