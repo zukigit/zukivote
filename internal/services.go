@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -38,15 +37,14 @@ type Service struct {
 	jwtSecret []byte
 }
 
-func NewService(pool *pgxpool.Pool) (*Service, error) {
+func NewService(pool *pgxpool.Pool, jwtSecret string) (*Service, error) {
 	if pool == nil {
 		return nil, ErrNilPool
 	}
-	secret := os.Getenv("JWT_SECRET")
-	if secret == "" {
+	if jwtSecret == "" {
 		return nil, ErrMissingJWTSecret
 	}
-	return &Service{pool: pool, jwtSecret: []byte(secret)}, nil
+	return &Service{pool: pool, jwtSecret: []byte(jwtSecret)}, nil
 }
 
 func (s *Service) Signup(ctx context.Context, userName, password string) error {

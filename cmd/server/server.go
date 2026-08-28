@@ -38,7 +38,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	svc, err := internal.NewService(pool)
+	svc, err := internal.NewService(pool, os.Getenv("JWT_SECRET"))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "failed to create service:", err)
 		os.Exit(1)
