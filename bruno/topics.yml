@@ -8,7 +8,7 @@ http:
   url: 127.0.0.1:8080/topics
   headers:
     - name: Authorization
-      value: Bearer {{token}}
+      value: Bearer {{LOGIN_TOKEN}}
   body:
     type: json
     data: |-

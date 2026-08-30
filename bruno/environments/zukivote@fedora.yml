@@ -4,3 +4,5 @@ variables:
     name: USER_NAME
   - secret: true
     name: USER_PASSWD
+  - secret: true
+    name: LOGIN_TOKEN
