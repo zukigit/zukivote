@@ -18,11 +18,6 @@ http:
         "voter_count": 3
       }
 
-runtime:
-  variables:
-    - name: token
-      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFmNzQ4ODg3LTY2ZmItNGM1Ni04NjBlLWU0OTQzOGE5MTNkYiIsImV4cCI6MTc4ODE4MjY1Mn0.RbM6lT-p_rd4DcwWvJvoj3wTN9ui3vjyppy5Q4Cye00
-
 settings:
   encodeUrl: true
   timeout: 0
