@@ -79,25 +79,31 @@ func NewService(pool *pgxpool.Pool, jwtSecret string) (*Service, error) {
 	return &Service{pool: pool, jwtSecret: []byte(jwtSecret)}, nil
 }
 
-func (s *Service) Signup(ctx context.Context, body io.Reader) error {
+type SignupResult struct {
+	Message string `json:"message"`
+}
+
+func (s *Service) Signup(ctx context.Context, body io.Reader) (SignupResult, error) {
+	var result SignupResult
+
 	var req credentialsRequest
 	if err := json.NewDecoder(body).Decode(&req); err != nil {
-		return ErrInvalidJSON
+		return result, ErrInvalidJSON
 	}
 
 	if req.UserName == "" || req.Password == "" {
-		return ErrUserNameOrPasswdIsEmpty
+		return result, ErrUserNameOrPasswdIsEmpty
 	}
 
 	tx, err := s.pool.Begin(ctx)
 	if err != nil {
-		return internalError(err.Error())
+		return result, internalError(err.Error())
 	}
 	defer tx.Rollback(ctx)
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return internalError(err.Error())
+		return result, internalError(err.Error())
 	}
 
 	if _, err := sqlc.New(tx).Signup(ctx, sqlc.SignupParams{
@@ -106,39 +112,47 @@ func (s *Service) Signup(ctx context.Context, body io.Reader) error {
 	}); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			return ErrUserExists
+			return result, ErrUserExists
 		}
-		return internalError(err.Error())
+		return result, internalError(err.Error())
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return internalError(err.Error())
+		return result, internalError(err.Error())
 	}
-	return nil
+
+	result.Message = "user created"
+	return result, nil
 }
 
-func (s *Service) Login(ctx context.Context, body io.Reader) (string, error) {
+type LoginResult struct {
+	Token string `json:"token"`
+}
+
+func (s *Service) Login(ctx context.Context, body io.Reader) (LoginResult, error) {
+	var result LoginResult
+
 	var req credentialsRequest
 	if err := json.NewDecoder(body).Decode(&req); err != nil {
-		return "", ErrInvalidJSON
+		return result, ErrInvalidJSON
 	}
 
 	if req.UserName == "" || req.Password == "" {
-		return "", ErrUserNameOrPasswdIsEmpty
+		return result, ErrUserNameOrPasswdIsEmpty
 	}
 
 	row, err := sqlc.New(s.pool).Login(ctx, req.UserName)
 	if err != nil {
 		switch err {
 		case pgx.ErrNoRows:
-			return "", ErrInvalidCreds
+			return result, ErrInvalidCreds
 		default:
-			return "", internalError(fmt.Sprintf("Login() failed, err: %s", err.Error()))
+			return result, internalError(fmt.Sprintf("Login() failed, err: %s", err.Error()))
 		}
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(row.HashedPassword), []byte(req.Password)); err != nil {
-		return "", ErrInvalidCreds
+		return result, ErrInvalidCreds
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, CustomClaims{
@@ -150,9 +164,11 @@ func (s *Service) Login(ctx context.Context, body io.Reader) (string, error) {
 
 	signed, err := token.SignedString(s.jwtSecret)
 	if err != nil {
-		return "", internalError(err.Error())
+		return result, internalError(err.Error())
 	}
-	return signed, nil
+
+	result.Token = signed
+	return result, nil
 }
 
 func (s *Service) ValidateToken(authHeader string) (string, error) {

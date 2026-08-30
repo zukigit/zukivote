@@ -30,14 +30,6 @@ func (h *Handler) Register(r *mux.Router) {
 	items.HandleFunc("", h.CreateItem).Methods(http.MethodPost)
 }
 
-type signupResponse struct {
-	Message string `json:"message"`
-}
-
-type loginResponse struct {
-	Token string `json:"token"`
-}
-
 type errorResponse struct {
 	Error string `json:"error"`
 }
@@ -63,22 +55,23 @@ func writeServiceError(w http.ResponseWriter, err error) {
 }
 
 func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
-	if err := h.users.Signup(r.Context(), r.Body); err != nil {
-		writeServiceError(w, err)
-		return
-	}
-
-	writeJSON(w, http.StatusCreated, signupResponse{Message: "user created"})
-}
-
-func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
-	token, err := h.users.Login(r.Context(), r.Body)
+	result, err := h.users.Signup(r.Context(), r.Body)
 	if err != nil {
 		writeServiceError(w, err)
 		return
 	}
 
-	writeJSON(w, http.StatusOK, loginResponse{Token: token})
+	writeJSON(w, http.StatusCreated, result)
+}
+
+func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
+	result, err := h.users.Login(r.Context(), r.Body)
+	if err != nil {
+		writeServiceError(w, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, result)
 }
 
 func (h *Handler) authMiddleware(next http.Handler) http.Handler {
