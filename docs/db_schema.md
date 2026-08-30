@@ -38,7 +38,7 @@ erDiagram
 
     RECORDS {
         integer id PK
-        integer voter_id FK
+        uuid voter_id FK
         integer item_id FK
         integer created_at
     }
@@ -104,7 +104,7 @@ erDiagram
 | Column   | Type     | Constraints                |
 | -------- | -------- | -------------------------- |
 | id       | INTEGER  | PRIMARY KEY, AUTO INCREMENT |
-| voter_id | INTEGER  | FOREIGN KEY references voters(id) ON DELETE CASCADE |
+| voter_id | UUID     | FOREIGN KEY references voters(id) ON DELETE CASCADE |
 | item_id  | INTEGER  | FOREIGN KEY references items(id) ON DELETE CASCADE |
 | created_at | INTEGER | NOT NULL (unix time)           |
 

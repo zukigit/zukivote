@@ -23,10 +23,10 @@ type ItemValue struct {
 }
 
 type Record struct {
-	ID        int32 `json:"id"`
-	VoterID   int32 `json:"voter_id"`
-	ItemID    int32 `json:"item_id"`
-	CreatedAt int32 `json:"created_at"`
+	ID        int32       `json:"id"`
+	VoterID   pgtype.UUID `json:"voter_id"`
+	ItemID    int32       `json:"item_id"`
+	CreatedAt int32       `json:"created_at"`
 }
 
 type Topic struct {

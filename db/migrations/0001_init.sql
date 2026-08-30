@@ -33,7 +33,7 @@ CREATE TABLE item_values (
 
 CREATE TABLE records (
     id         INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    voter_id   INTEGER NOT NULL REFERENCES voters(id) ON DELETE CASCADE,
+    voter_id   UUID NOT NULL REFERENCES voters(id) ON DELETE CASCADE,
     item_id    INTEGER NOT NULL REFERENCES items(id) ON DELETE CASCADE,
     created_at INTEGER NOT NULL,
     UNIQUE (voter_id, item_id)
