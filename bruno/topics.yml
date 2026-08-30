@@ -1,0 +1,26 @@
+info:
+  name: topics
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: 127.0.0.1:8080/topics
+  headers:
+    - name: Authorization
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImUxNGJkMzNkLTE5YjgtNDcyOS1iMDlmLTk4ZTQ0YjFjZDk4NSIsImV4cCI6MTc4ODE3ODEwN30._fVxWdI42a2NuRGc3DQWd6oeQmv6uv-ILDuLHTfT_0A
+  body:
+    type: json
+    data: |-
+      {
+        "start_at": 1700000000,
+        "expired_at": 1700086400,
+        "voter_count": 3
+      }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+​

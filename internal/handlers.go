@@ -46,12 +46,12 @@ func writeError(w http.ResponseWriter, status int, msg string) {
 
 func writeServiceError(w http.ResponseWriter, err error) {
 	var svcErr *ServiceError
-	if svcErr != nil && errors.As(err, &svcErr) {
+	if errors.As(err, &svcErr) {
 		writeError(w, svcErr.StatusCode, svcErr.Message)
 		return
 	}
 
-	writeError(w, http.StatusInternalServerError, "internal error")
+	writeError(w, http.StatusInternalServerError, err.Error())
 }
 
 func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {

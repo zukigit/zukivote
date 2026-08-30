@@ -252,7 +252,7 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (*CreateTopic
 		ExpiredAt: req.ExpiredAt,
 	})
 	if err != nil {
-		return nil, internalError(fmt.Sprintf("CreateTopic() failed, err: %s", err.Error()))
+		return nil, internalError(fmt.Sprintf("CreateTopic() failed, %s", err.Error()))
 	}
 
 	result.TopicID = topicID.String()
@@ -260,7 +260,7 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (*CreateTopic
 	for i := int32(0); i < req.VoterCount; i++ {
 		voterID, err := q.CreateVoter(ctx, topicID)
 		if err != nil {
-			return nil, internalError(fmt.Sprintf("CreateVoter() failed, err: %s", err.Error()))
+			return nil, internalError(fmt.Sprintf("CreateVoter() failed, %s", err.Error()))
 		}
 		result.Voters = append(result.Voters, voterID.String())
 	}
