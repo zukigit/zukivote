@@ -93,7 +93,6 @@ func (h *Handler) authMiddleware(next http.Handler) http.Handler {
 type createTopicResponse struct {
 	TopicID string   `json:"topic_id"`
 	Voters  []string `json:"voters"`
-	ItemIDs []int32  `json:"item_ids"`
 }
 
 func (h *Handler) CreateTopic(w http.ResponseWriter, r *http.Request) {
@@ -106,6 +105,5 @@ func (h *Handler) CreateTopic(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, createTopicResponse{
 		TopicID: result.TopicID,
 		Voters:  result.Voters,
-		ItemIDs: result.ItemIDs,
 	})
 }

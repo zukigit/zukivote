@@ -38,7 +38,6 @@ var (
 	ErrUserNameOrPasswdIsEmpty = &ServiceError{StatusCode: http.StatusBadRequest, Message: "user_name and password are required"}
 	ErrNilPool                 = &ServiceError{StatusCode: http.StatusInternalServerError, Message: "pool cannot be nil"}
 	ErrInvalidTopicParams      = &ServiceError{StatusCode: http.StatusBadRequest, Message: "invalid topic params"}
-	ErrEmptyItemValue          = &ServiceError{StatusCode: http.StatusBadRequest, Message: "item value key and value are required"}
 	ErrMissingJWTSecret        = &ServiceError{StatusCode: http.StatusInternalServerError, Message: "jwt secret key is required"}
 	ErrInvalidToken            = &ServiceError{StatusCode: http.StatusUnauthorized, Message: "invalid token"}
 	ErrInvalidJSON             = &ServiceError{StatusCode: http.StatusBadRequest, Message: "invalid request body"}
@@ -178,26 +177,14 @@ type credentialsRequest struct {
 }
 
 type CreateTopicRequest struct {
-	StartAt    int32             `json:"start_at"`
-	ExpiredAt  int32             `json:"expired_at"`
-	VoterCount int32             `json:"voter_count"`
-	Items      []CreateTopicItem `json:"items"`
-}
-
-type CreateTopicItem struct {
-	Description string             `json:"description"`
-	Values      []CreateTopicValue `json:"values"`
-}
-
-type CreateTopicValue struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
+	StartAt    int32 `json:"start_at"`
+	ExpiredAt  int32 `json:"expired_at"`
+	VoterCount int32 `json:"voter_count"`
 }
 
 type CreateTopicResult struct {
 	TopicID string
 	Voters  []string
-	ItemIDs []int32
 }
 
 func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (CreateTopicResult, error) {
@@ -213,18 +200,8 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (CreateTopicR
 		return result, ErrInvalidJSON
 	}
 
-	if ownerID == "" || req.VoterCount <= 0 || len(req.Items) == 0 {
+	if ownerID == "" || req.VoterCount <= 0 {
 		return result, ErrInvalidTopicParams
-	}
-	for _, item := range req.Items {
-		if item.Description == "" {
-			return result, ErrInvalidTopicParams
-		}
-		for _, value := range item.Values {
-			if value.Key == "" || value.Value == "" {
-				return result, ErrEmptyItemValue
-			}
-		}
 	}
 
 	var owner pgtype.UUID
@@ -257,29 +234,6 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (CreateTopicR
 			return result, internalError(fmt.Sprintf("CreateVoter() failed, err: %s", err.Error()))
 		}
 		result.Voters = append(result.Voters, voterID.String())
-	}
-
-	for _, item := range req.Items {
-		itemID, err := q.CreateItem(ctx, sqlc.CreateItemParams{
-			TopicID:     topicID,
-			Description: item.Description,
-			PhotoUrl:    pgtype.Text{},
-		})
-		if err != nil {
-			return result, internalError(fmt.Sprintf("CreateItem() failed, err: %s", err.Error()))
-		}
-
-		for _, value := range item.Values {
-			if _, err := q.CreateItemValue(ctx, sqlc.CreateItemValueParams{
-				ItemID: itemID,
-				Key:    value.Key,
-				Value:  value.Value,
-			}); err != nil {
-				return result, internalError(fmt.Sprintf("CreateItemValue() failed, err: %s", err.Error()))
-			}
-		}
-
-		result.ItemIDs = append(result.ItemIDs, itemID)
 	}
 
 	if err := tx.Commit(ctx); err != nil {
