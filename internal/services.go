@@ -347,7 +347,6 @@ func (s *Service) CreateItem(ctx context.Context, r *http.Request) (*CreateItemR
 	itemID, err := q.CreateItem(ctx, sqlc.CreateItemParams{
 		TopicID:     topicID,
 		Description: description,
-		PhotoUrl:    pgtype.Text{},
 	})
 	if err != nil {
 		return nil, internalError(fmt.Sprintf("CreateItem() failed, err: %s", err.Error()))

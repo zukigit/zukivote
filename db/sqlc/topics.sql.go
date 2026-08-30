@@ -12,19 +12,18 @@ import (
 )
 
 const createItem = `-- name: CreateItem :one
-INSERT INTO items (topic_id, description, photo_url)
-VALUES ($1, $2, $3)
+INSERT INTO items (topic_id, description)
+VALUES ($1, $2)
 RETURNING id
 `
 
 type CreateItemParams struct {
 	TopicID     pgtype.UUID `json:"topic_id"`
 	Description string      `json:"description"`
-	PhotoUrl    pgtype.Text `json:"photo_url"`
 }
 
 func (q *Queries) CreateItem(ctx context.Context, arg CreateItemParams) (int32, error) {
-	row := q.db.QueryRow(ctx, createItem, arg.TopicID, arg.Description, arg.PhotoUrl)
+	row := q.db.QueryRow(ctx, createItem, arg.TopicID, arg.Description)
 	var id int32
 	err := row.Scan(&id)
 	return id, err

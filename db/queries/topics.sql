@@ -14,8 +14,8 @@ FROM topics
 WHERE id = $1;
 
 -- name: CreateItem :one
-INSERT INTO items (topic_id, description, photo_url)
-VALUES ($1, $2, $3)
+INSERT INTO items (topic_id, description)
+VALUES ($1, $2)
 RETURNING id;
 
 -- name: CreateItemValue :one
