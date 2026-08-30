@@ -98,7 +98,9 @@ func (h *Handler) CreateTopic(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) CreateItem(w http.ResponseWriter, r *http.Request) {
-	result, err := h.users.CreateItem(r.Context(), r.Body)
+	r.Body = http.MaxBytesReader(w, r.Body, maxPhotoSize+1<<20)
+
+	result, err := h.users.CreateItem(r.Context(), r)
 	if err != nil {
 		writeServiceError(w, err)
 		return

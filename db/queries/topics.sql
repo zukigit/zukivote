@@ -22,3 +22,8 @@ RETURNING id;
 INSERT INTO item_values (item_id, key, value)
 VALUES ($1, $2, $3)
 RETURNING id;
+
+-- name: UpdateItemPhotoUrl :exec
+UPDATE items
+SET photo_url = $2
+WHERE id = $1;

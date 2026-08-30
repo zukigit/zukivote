@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -42,6 +44,8 @@ var (
 	ErrEmptyItemValue          = &ServiceError{StatusCode: http.StatusBadRequest, Message: "item value key and value are required"}
 	ErrTopicNotFound           = &ServiceError{StatusCode: http.StatusNotFound, Message: "topic not found"}
 	ErrForbidden               = &ServiceError{StatusCode: http.StatusForbidden, Message: "forbidden"}
+	ErrInvalidForm             = &ServiceError{StatusCode: http.StatusBadRequest, Message: "invalid form data"}
+	ErrPhotoTooLarge           = &ServiceError{StatusCode: http.StatusBadRequest, Message: "photo too large"}
 	ErrMissingJWTSecret        = &ServiceError{StatusCode: http.StatusInternalServerError, Message: "jwt secret key is required"}
 	ErrInvalidToken            = &ServiceError{StatusCode: http.StatusUnauthorized, Message: "invalid token"}
 	ErrInvalidJSON             = &ServiceError{StatusCode: http.StatusBadRequest, Message: "invalid request body"}
@@ -49,6 +53,11 @@ var (
 )
 
 const jwtTTL = 24 * time.Hour
+
+const (
+	maxPhotoSize = 8 << 20
+	photosDir    = "/app/photos"
+)
 
 type contextKey string
 
@@ -262,46 +271,58 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (*CreateTopic
 	return &result, nil
 }
 
-type CreateItemRequest struct {
-	TopicID     string            `json:"topic_id"`
-	Description string            `json:"description"`
-	Values      []CreateItemValue `json:"values"`
-}
-
 type CreateItemValue struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }
 
 type CreateItemResult struct {
-	ItemID int32 `json:"item_id"`
+	ItemID   int32  `json:"item_id"`
+	PhotoURL string `json:"photo_url"`
 }
 
-func (s *Service) CreateItem(ctx context.Context, body io.Reader) (*CreateItemResult, error) {
-	var result CreateItemResult
-
+func (s *Service) CreateItem(ctx context.Context, r *http.Request) (*CreateItemResult, error) {
 	userID, ok := userIDFromContext(ctx)
 	if !ok {
 		return nil, ErrUnauthenticated
 	}
 
-	var req CreateItemRequest
-	if err := json.NewDecoder(body).Decode(&req); err != nil {
-		return nil, ErrInvalidJSON
+	if err := r.ParseMultipartForm(maxPhotoSize); err != nil {
+		return nil, ErrInvalidForm
 	}
 
-	if req.TopicID == "" || req.Description == "" {
+	topicIDStr := r.FormValue("topic_id")
+	description := r.FormValue("description")
+
+	var values []CreateItemValue
+	if v := r.FormValue("values"); v != "" {
+		if err := json.Unmarshal([]byte(v), &values); err != nil {
+			return nil, ErrInvalidItemParams
+		}
+	}
+
+	if topicIDStr == "" || description == "" {
 		return nil, ErrInvalidItemParams
 	}
-	for _, value := range req.Values {
+	for _, value := range values {
 		if value.Key == "" || value.Value == "" {
 			return nil, ErrEmptyItemValue
 		}
 	}
 
 	var topicID pgtype.UUID
-	if err := topicID.Scan(req.TopicID); err != nil {
+	if err := topicID.Scan(topicIDStr); err != nil {
 		return nil, ErrInvalidItemParams
+	}
+
+	file, header, err := r.FormFile("photo")
+	if err != nil {
+		return nil, ErrInvalidForm
+	}
+	defer file.Close()
+
+	if header.Size > maxPhotoSize {
+		return nil, ErrPhotoTooLarge
 	}
 
 	tx, err := s.pool.Begin(ctx)
@@ -325,27 +346,52 @@ func (s *Service) CreateItem(ctx context.Context, body io.Reader) (*CreateItemRe
 
 	itemID, err := q.CreateItem(ctx, sqlc.CreateItemParams{
 		TopicID:     topicID,
-		Description: req.Description,
+		Description: description,
 		PhotoUrl:    pgtype.Text{},
 	})
 	if err != nil {
 		return nil, internalError(fmt.Sprintf("CreateItem() failed, err: %s", err.Error()))
 	}
 
-	for _, value := range req.Values {
+	if err := os.MkdirAll(photosDir, 0o755); err != nil {
+		return nil, internalError(err.Error())
+	}
+
+	photoURL := fmt.Sprintf("%s/%d%s", photosDir, itemID, filepath.Ext(header.Filename))
+	out, err := os.Create(photoURL)
+	if err != nil {
+		return nil, internalError(err.Error())
+	}
+	defer out.Close()
+
+	if _, err := io.Copy(out, file); err != nil {
+		os.Remove(photoURL)
+		return nil, internalError(err.Error())
+	}
+
+	if err := q.UpdateItemPhotoUrl(ctx, sqlc.UpdateItemPhotoUrlParams{
+		ID:       itemID,
+		PhotoUrl: pgtype.Text{String: photoURL, Valid: true},
+	}); err != nil {
+		os.Remove(photoURL)
+		return nil, internalError(fmt.Sprintf("UpdateItemPhotoUrl() failed, err: %s", err.Error()))
+	}
+
+	for _, value := range values {
 		if _, err := q.CreateItemValue(ctx, sqlc.CreateItemValueParams{
 			ItemID: itemID,
 			Key:    value.Key,
 			Value:  value.Value,
 		}); err != nil {
+			os.Remove(photoURL)
 			return nil, internalError(fmt.Sprintf("CreateItemValue() failed, err: %s", err.Error()))
 		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {
+		os.Remove(photoURL)
 		return nil, internalError(err.Error())
 	}
 
-	result.ItemID = itemID
-	return &result, nil
+	return &CreateItemResult{ItemID: itemID, PhotoURL: photoURL}, nil
 }

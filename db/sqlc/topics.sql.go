@@ -93,3 +93,19 @@ func (q *Queries) GetTopicOwner(ctx context.Context, id pgtype.UUID) (pgtype.UUI
 	err := row.Scan(&owner_id)
 	return owner_id, err
 }
+
+const updateItemPhotoUrl = `-- name: UpdateItemPhotoUrl :exec
+UPDATE items
+SET photo_url = $2
+WHERE id = $1
+`
+
+type UpdateItemPhotoUrlParams struct {
+	ID       int32       `json:"id"`
+	PhotoUrl pgtype.Text `json:"photo_url"`
+}
+
+func (q *Queries) UpdateItemPhotoUrl(ctx context.Context, arg UpdateItemPhotoUrlParams) error {
+	_, err := q.db.Exec(ctx, updateItemPhotoUrl, arg.ID, arg.PhotoUrl)
+	return err
+}
