@@ -83,27 +83,27 @@ type SignupResult struct {
 	Message string `json:"message"`
 }
 
-func (s *Service) Signup(ctx context.Context, body io.Reader) (SignupResult, error) {
+func (s *Service) Signup(ctx context.Context, body io.Reader) (*SignupResult, error) {
 	var result SignupResult
 
 	var req credentialsRequest
 	if err := json.NewDecoder(body).Decode(&req); err != nil {
-		return result, ErrInvalidJSON
+		return nil, ErrInvalidJSON
 	}
 
 	if req.UserName == "" || req.Password == "" {
-		return result, ErrUserNameOrPasswdIsEmpty
+		return nil, ErrUserNameOrPasswdIsEmpty
 	}
 
 	tx, err := s.pool.Begin(ctx)
 	if err != nil {
-		return result, internalError(err.Error())
+		return nil, internalError(err.Error())
 	}
 	defer tx.Rollback(ctx)
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return result, internalError(err.Error())
+		return nil, internalError(err.Error())
 	}
 
 	if _, err := sqlc.New(tx).Signup(ctx, sqlc.SignupParams{
@@ -112,47 +112,47 @@ func (s *Service) Signup(ctx context.Context, body io.Reader) (SignupResult, err
 	}); err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			return result, ErrUserExists
+			return nil, ErrUserExists
 		}
-		return result, internalError(err.Error())
+		return nil, internalError(err.Error())
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return result, internalError(err.Error())
+		return nil, internalError(err.Error())
 	}
 
 	result.Message = "user created"
-	return result, nil
+	return &result, nil
 }
 
 type LoginResult struct {
 	Token string `json:"token"`
 }
 
-func (s *Service) Login(ctx context.Context, body io.Reader) (LoginResult, error) {
+func (s *Service) Login(ctx context.Context, body io.Reader) (*LoginResult, error) {
 	var result LoginResult
 
 	var req credentialsRequest
 	if err := json.NewDecoder(body).Decode(&req); err != nil {
-		return result, ErrInvalidJSON
+		return nil, ErrInvalidJSON
 	}
 
 	if req.UserName == "" || req.Password == "" {
-		return result, ErrUserNameOrPasswdIsEmpty
+		return nil, ErrUserNameOrPasswdIsEmpty
 	}
 
 	row, err := sqlc.New(s.pool).Login(ctx, req.UserName)
 	if err != nil {
 		switch err {
 		case pgx.ErrNoRows:
-			return result, ErrInvalidCreds
+			return nil, ErrInvalidCreds
 		default:
-			return result, internalError(fmt.Sprintf("Login() failed, err: %s", err.Error()))
+			return nil, internalError(fmt.Sprintf("Login() failed, err: %s", err.Error()))
 		}
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(row.HashedPassword), []byte(req.Password)); err != nil {
-		return result, ErrInvalidCreds
+		return nil, ErrInvalidCreds
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, CustomClaims{
@@ -164,11 +164,11 @@ func (s *Service) Login(ctx context.Context, body io.Reader) (LoginResult, error
 
 	signed, err := token.SignedString(s.jwtSecret)
 	if err != nil {
-		return result, internalError(err.Error())
+		return nil, internalError(err.Error())
 	}
 
 	result.Token = signed
-	return result, nil
+	return &result, nil
 }
 
 func (s *Service) ValidateToken(authHeader string) (string, error) {
@@ -207,31 +207,31 @@ type CreateTopicResult struct {
 	Voters  []string `json:"voters"`
 }
 
-func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (CreateTopicResult, error) {
+func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (*CreateTopicResult, error) {
 	var result CreateTopicResult
 
 	ownerID, ok := userIDFromContext(ctx)
 	if !ok {
-		return result, ErrUnauthenticated
+		return nil, ErrUnauthenticated
 	}
 
 	var req CreateTopicRequest
 	if err := json.NewDecoder(body).Decode(&req); err != nil {
-		return result, ErrInvalidJSON
+		return nil, ErrInvalidJSON
 	}
 
 	if ownerID == "" || req.VoterCount <= 0 {
-		return result, ErrInvalidTopicParams
+		return nil, ErrInvalidTopicParams
 	}
 
 	var owner pgtype.UUID
 	if err := owner.Scan(ownerID); err != nil {
-		return result, ErrInvalidTopicParams
+		return nil, ErrInvalidTopicParams
 	}
 
 	tx, err := s.pool.Begin(ctx)
 	if err != nil {
-		return result, internalError(err.Error())
+		return nil, internalError(err.Error())
 	}
 	defer tx.Rollback(ctx)
 
@@ -243,7 +243,7 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (CreateTopicR
 		ExpiredAt: req.ExpiredAt,
 	})
 	if err != nil {
-		return result, internalError(fmt.Sprintf("CreateTopic() failed, err: %s", err.Error()))
+		return nil, internalError(fmt.Sprintf("CreateTopic() failed, err: %s", err.Error()))
 	}
 
 	result.TopicID = topicID.String()
@@ -251,15 +251,15 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (CreateTopicR
 	for i := int32(0); i < req.VoterCount; i++ {
 		voterID, err := q.CreateVoter(ctx, topicID)
 		if err != nil {
-			return result, internalError(fmt.Sprintf("CreateVoter() failed, err: %s", err.Error()))
+			return nil, internalError(fmt.Sprintf("CreateVoter() failed, err: %s", err.Error()))
 		}
 		result.Voters = append(result.Voters, voterID.String())
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return result, internalError(err.Error())
+		return nil, internalError(err.Error())
 	}
-	return result, nil
+	return &result, nil
 }
 
 type CreateItemRequest struct {
@@ -278,36 +278,36 @@ type CreateItemResult struct {
 	ItemID int32 `json:"item_id"`
 }
 
-func (s *Service) CreateItem(ctx context.Context, body io.Reader) (CreateItemResult, error) {
+func (s *Service) CreateItem(ctx context.Context, body io.Reader) (*CreateItemResult, error) {
 	var result CreateItemResult
 
 	userID, ok := userIDFromContext(ctx)
 	if !ok {
-		return result, ErrUnauthenticated
+		return nil, ErrUnauthenticated
 	}
 
 	var req CreateItemRequest
 	if err := json.NewDecoder(body).Decode(&req); err != nil {
-		return result, ErrInvalidJSON
+		return nil, ErrInvalidJSON
 	}
 
 	if req.TopicID == "" || req.Description == "" {
-		return result, ErrInvalidItemParams
+		return nil, ErrInvalidItemParams
 	}
 	for _, value := range req.Values {
 		if value.Key == "" || value.Value == "" {
-			return result, ErrEmptyItemValue
+			return nil, ErrEmptyItemValue
 		}
 	}
 
 	var topicID pgtype.UUID
 	if err := topicID.Scan(req.TopicID); err != nil {
-		return result, ErrInvalidItemParams
+		return nil, ErrInvalidItemParams
 	}
 
 	tx, err := s.pool.Begin(ctx)
 	if err != nil {
-		return result, internalError(err.Error())
+		return nil, internalError(err.Error())
 	}
 	defer tx.Rollback(ctx)
 
@@ -316,12 +316,12 @@ func (s *Service) CreateItem(ctx context.Context, body io.Reader) (CreateItemRes
 	ownerID, err := q.GetTopicOwner(ctx, topicID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return result, ErrTopicNotFound
+			return nil, ErrTopicNotFound
 		}
-		return result, internalError(err.Error())
+		return nil, internalError(err.Error())
 	}
 	if ownerID.String() != userID {
-		return result, ErrForbidden
+		return nil, ErrForbidden
 	}
 
 	itemID, err := q.CreateItem(ctx, sqlc.CreateItemParams{
@@ -333,7 +333,7 @@ func (s *Service) CreateItem(ctx context.Context, body io.Reader) (CreateItemRes
 		},
 	})
 	if err != nil {
-		return result, internalError(fmt.Sprintf("CreateItem() failed, err: %s", err.Error()))
+		return nil, internalError(fmt.Sprintf("CreateItem() failed, err: %s", err.Error()))
 	}
 
 	for _, value := range req.Values {
@@ -342,14 +342,14 @@ func (s *Service) CreateItem(ctx context.Context, body io.Reader) (CreateItemRes
 			Key:    value.Key,
 			Value:  value.Value,
 		}); err != nil {
-			return result, internalError(fmt.Sprintf("CreateItemValue() failed, err: %s", err.Error()))
+			return nil, internalError(fmt.Sprintf("CreateItemValue() failed, err: %s", err.Error()))
 		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		return result, internalError(err.Error())
+		return nil, internalError(err.Error())
 	}
 
 	result.ItemID = itemID
-	return result, nil
+	return &result, nil
 }
