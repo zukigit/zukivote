@@ -38,6 +38,10 @@ var (
 	ErrUserNameOrPasswdIsEmpty = &ServiceError{StatusCode: http.StatusBadRequest, Message: "user_name and password are required"}
 	ErrNilPool                 = &ServiceError{StatusCode: http.StatusInternalServerError, Message: "pool cannot be nil"}
 	ErrInvalidTopicParams      = &ServiceError{StatusCode: http.StatusBadRequest, Message: "invalid topic params"}
+	ErrInvalidItemParams       = &ServiceError{StatusCode: http.StatusBadRequest, Message: "invalid item params"}
+	ErrEmptyItemValue          = &ServiceError{StatusCode: http.StatusBadRequest, Message: "item value key and value are required"}
+	ErrTopicNotFound           = &ServiceError{StatusCode: http.StatusNotFound, Message: "topic not found"}
+	ErrForbidden               = &ServiceError{StatusCode: http.StatusForbidden, Message: "forbidden"}
 	ErrMissingJWTSecret        = &ServiceError{StatusCode: http.StatusInternalServerError, Message: "jwt secret key is required"}
 	ErrInvalidToken            = &ServiceError{StatusCode: http.StatusUnauthorized, Message: "invalid token"}
 	ErrInvalidJSON             = &ServiceError{StatusCode: http.StatusBadRequest, Message: "invalid request body"}
@@ -239,5 +243,97 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (CreateTopicR
 	if err := tx.Commit(ctx); err != nil {
 		return result, internalError(err.Error())
 	}
+	return result, nil
+}
+
+type CreateItemRequest struct {
+	TopicID     string            `json:"topic_id"`
+	Description string            `json:"description"`
+	PhotoURL    string            `json:"photo_url"`
+	Values      []CreateItemValue `json:"values"`
+}
+
+type CreateItemValue struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+type CreateItemResult struct {
+	ItemID int32
+}
+
+func (s *Service) CreateItem(ctx context.Context, body io.Reader) (CreateItemResult, error) {
+	var result CreateItemResult
+
+	userID, ok := userIDFromContext(ctx)
+	if !ok {
+		return result, ErrUnauthenticated
+	}
+
+	var req CreateItemRequest
+	if err := json.NewDecoder(body).Decode(&req); err != nil {
+		return result, ErrInvalidJSON
+	}
+
+	if req.TopicID == "" || req.Description == "" {
+		return result, ErrInvalidItemParams
+	}
+	for _, value := range req.Values {
+		if value.Key == "" || value.Value == "" {
+			return result, ErrEmptyItemValue
+		}
+	}
+
+	var topicID pgtype.UUID
+	if err := topicID.Scan(req.TopicID); err != nil {
+		return result, ErrInvalidItemParams
+	}
+
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return result, internalError(err.Error())
+	}
+	defer tx.Rollback(ctx)
+
+	q := sqlc.New(tx)
+
+	ownerID, err := q.GetTopicOwner(ctx, topicID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return result, ErrTopicNotFound
+		}
+		return result, internalError(err.Error())
+	}
+	if ownerID.String() != userID {
+		return result, ErrForbidden
+	}
+
+	itemID, err := q.CreateItem(ctx, sqlc.CreateItemParams{
+		TopicID:     topicID,
+		Description: req.Description,
+		PhotoUrl: pgtype.Text{
+			String: req.PhotoURL,
+			Valid:  req.PhotoURL != "",
+		},
+	})
+	if err != nil {
+		return result, internalError(fmt.Sprintf("CreateItem() failed, err: %s", err.Error()))
+	}
+
+	for _, value := range req.Values {
+		if _, err := q.CreateItemValue(ctx, sqlc.CreateItemValueParams{
+			ItemID: itemID,
+			Key:    value.Key,
+			Value:  value.Value,
+		}); err != nil {
+			return result, internalError(fmt.Sprintf("CreateItemValue() failed, err: %s", err.Error()))
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return result, internalError(err.Error())
+	}
+
+	result.ItemID = itemID
 	return result, nil
 }

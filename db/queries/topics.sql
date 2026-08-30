@@ -8,6 +8,11 @@ INSERT INTO voters (topic_id)
 VALUES ($1)
 RETURNING id;
 
+-- name: GetTopicOwner :one
+SELECT owner_id
+FROM topics
+WHERE id = $1;
+
 -- name: CreateItem :one
 INSERT INTO items (topic_id, description, photo_url)
 VALUES ($1, $2, $3)

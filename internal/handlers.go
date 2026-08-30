@@ -24,6 +24,10 @@ func (h *Handler) Register(r *mux.Router) {
 	protected := r.PathPrefix("/topics").Subrouter()
 	protected.Use(h.authMiddleware)
 	protected.HandleFunc("", h.CreateTopic).Methods(http.MethodPost)
+
+	items := r.PathPrefix("/items").Subrouter()
+	items.Use(h.authMiddleware)
+	items.HandleFunc("", h.CreateItem).Methods(http.MethodPost)
 }
 
 type signupResponse struct {
@@ -106,4 +110,18 @@ func (h *Handler) CreateTopic(w http.ResponseWriter, r *http.Request) {
 		TopicID: result.TopicID,
 		Voters:  result.Voters,
 	})
+}
+
+type createItemResponse struct {
+	ItemID int32 `json:"item_id"`
+}
+
+func (h *Handler) CreateItem(w http.ResponseWriter, r *http.Request) {
+	result, err := h.users.CreateItem(r.Context(), r.Body)
+	if err != nil {
+		writeServiceError(w, err)
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, createItemResponse{ItemID: result.ItemID})
 }

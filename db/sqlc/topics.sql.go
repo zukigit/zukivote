@@ -80,3 +80,16 @@ func (q *Queries) CreateVoter(ctx context.Context, topicID pgtype.UUID) (pgtype.
 	err := row.Scan(&id)
 	return id, err
 }
+
+const getTopicOwner = `-- name: GetTopicOwner :one
+SELECT owner_id
+FROM topics
+WHERE id = $1
+`
+
+func (q *Queries) GetTopicOwner(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, getTopicOwner, id)
+	var owner_id pgtype.UUID
+	err := row.Scan(&owner_id)
+	return owner_id, err
+}
