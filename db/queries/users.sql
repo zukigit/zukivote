@@ -7,3 +7,8 @@ RETURNING id;
 SELECT id, hashed_password
 FROM users
 WHERE user_name = $1;
+
+-- name: GetUserByID :one
+SELECT id
+FROM users
+WHERE id = $1;

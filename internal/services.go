@@ -50,6 +50,7 @@ var (
 	ErrInvalidToken            = &ServiceError{StatusCode: http.StatusUnauthorized, Message: "invalid token"}
 	ErrInvalidJSON             = &ServiceError{StatusCode: http.StatusBadRequest, Message: "invalid request body"}
 	ErrUnauthenticated         = &ServiceError{StatusCode: http.StatusUnauthorized, Message: "unauthenticated"}
+	ErrInvalidUser             = &ServiceError{StatusCode: http.StatusUnauthorized, Message: "invalid user"}
 )
 
 const jwtTTL = 24 * time.Hour
@@ -245,6 +246,13 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (*CreateTopic
 	defer tx.Rollback(ctx)
 
 	q := sqlc.New(tx)
+
+	if _, err := q.GetUserByID(ctx, owner); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrInvalidUser
+		}
+		return nil, internalError(err.Error())
+	}
 
 	topicID, err := q.CreateTopic(ctx, sqlc.CreateTopicParams{
 		OwnerID:   owner,
