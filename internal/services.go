@@ -265,7 +265,6 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (*CreateTopic
 type CreateItemRequest struct {
 	TopicID     string            `json:"topic_id"`
 	Description string            `json:"description"`
-	PhotoURL    string            `json:"photo_url"`
 	Values      []CreateItemValue `json:"values"`
 }
 
@@ -327,10 +326,7 @@ func (s *Service) CreateItem(ctx context.Context, body io.Reader) (*CreateItemRe
 	itemID, err := q.CreateItem(ctx, sqlc.CreateItemParams{
 		TopicID:     topicID,
 		Description: req.Description,
-		PhotoUrl: pgtype.Text{
-			String: req.PhotoURL,
-			Valid:  req.PhotoURL != "",
-		},
+		PhotoUrl:    pgtype.Text{},
 	})
 	if err != nil {
 		return nil, internalError(fmt.Sprintf("CreateItem() failed, err: %s", err.Error()))
