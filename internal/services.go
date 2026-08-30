@@ -187,8 +187,8 @@ type CreateTopicRequest struct {
 }
 
 type CreateTopicResult struct {
-	TopicID string
-	Voters  []string
+	TopicID string   `json:"topic_id"`
+	Voters  []string `json:"voters"`
 }
 
 func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (CreateTopicResult, error) {
@@ -259,7 +259,7 @@ type CreateItemValue struct {
 }
 
 type CreateItemResult struct {
-	ItemID int32
+	ItemID int32 `json:"item_id"`
 }
 
 func (s *Service) CreateItem(ctx context.Context, body io.Reader) (CreateItemResult, error) {
