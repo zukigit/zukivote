@@ -25,20 +25,20 @@ func NewHandler(users *Service, frontendURL string) *Handler {
 func (h *Handler) Register(r *mux.Router) {
 	r.Use(h.corsMiddleware)
 
-	r.HandleFunc("/signup", h.Signup).Methods(http.MethodPost)
-	r.HandleFunc("/login", h.Login).Methods(http.MethodPost)
+	r.HandleFunc("/signup", h.Signup).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/login", h.Login).Methods(http.MethodPost, http.MethodOptions)
 
 	protected := r.PathPrefix("/topics").Subrouter()
 	protected.Use(h.authMiddleware)
-	protected.HandleFunc("", h.CreateTopic).Methods(http.MethodPost)
-	protected.HandleFunc("", h.GetTopics).Methods(http.MethodGet)
+	protected.HandleFunc("", h.CreateTopic).Methods(http.MethodPost, http.MethodOptions)
+	protected.HandleFunc("", h.GetTopics).Methods(http.MethodGet, http.MethodOptions)
 
-	r.HandleFunc("/photo", h.GetItemPhoto).Methods(http.MethodGet)
+	r.HandleFunc("/photo", h.GetItemPhoto).Methods(http.MethodGet, http.MethodOptions)
 
 	items := r.PathPrefix("/items").Subrouter()
 	items.Use(h.authMiddleware)
-	items.HandleFunc("", h.CreateItem).Methods(http.MethodPost)
-	items.HandleFunc("", h.GetItems).Methods(http.MethodGet)
+	items.HandleFunc("", h.CreateItem).Methods(http.MethodPost, http.MethodOptions)
+	items.HandleFunc("", h.GetItems).Methods(http.MethodGet, http.MethodOptions)
 }
 
 type errorResponse struct {
