@@ -14,14 +14,17 @@ import (
 )
 
 type Handler struct {
-	users *Service
+	users       *Service
+	frontendURL string
 }
 
-func NewHandler(users *Service) *Handler {
-	return &Handler{users: users}
+func NewHandler(users *Service, frontendURL string) *Handler {
+	return &Handler{users: users, frontendURL: frontendURL}
 }
 
 func (h *Handler) Register(r *mux.Router) {
+	r.Use(h.corsMiddleware)
+
 	r.HandleFunc("/signup", h.Signup).Methods(http.MethodPost)
 	r.HandleFunc("/login", h.Login).Methods(http.MethodPost)
 
@@ -92,6 +95,25 @@ func (h *Handler) authMiddleware(next http.Handler) http.Handler {
 
 		ctx := context.WithValue(r.Context(), userIDKey, userID)
 		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (h *Handler) corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		origin := h.frontendURL
+		if origin == "" {
+			origin = "*"
+		}
+		w.Header().Set("Access-Control-Allow-Origin", origin)
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, r)
 	})
 }
 

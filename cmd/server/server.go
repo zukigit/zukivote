@@ -45,7 +45,7 @@ func main() {
 	}
 
 	r := mux.NewRouter()
-	internal.NewHandler(svc).Register(r)
+	internal.NewHandler(svc, os.Getenv("FRONTEND_URL")).Register(r)
 
 	srv := &http.Server{
 		Addr:    ":8080",
