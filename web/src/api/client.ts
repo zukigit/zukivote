@@ -1,4 +1,5 @@
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+const API_TIMEOUT = 5000
 
 interface ApiResponse<T> {
   data: T | null
@@ -24,10 +25,21 @@ async function request<T>(
     (headers as Record<string, string>)['Content-Type'] = 'application/json'
   }
 
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers,
-  })
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT)
+
+  let res: Response
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    })
+  } catch {
+    return { data: null, error: 'request timed out', status: 0 }
+  } finally {
+    clearTimeout(timeoutId)
+  }
 
   const body = await res.json()
 

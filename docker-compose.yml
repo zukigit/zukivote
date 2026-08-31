@@ -19,7 +19,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    pull_policy: build
     ports:
       - "8080:8080"
     volumes:
@@ -38,7 +37,6 @@ services:
     build:
       context: ./web
       dockerfile: Dockerfile
-    pull_policy: build
     ports:
       - "5173:80"
     environment:
