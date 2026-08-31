@@ -93,6 +93,38 @@ func (q *Queries) GetTopicOwner(ctx context.Context, id pgtype.UUID) (pgtype.UUI
 	return owner_id, err
 }
 
+const getTopicsByOwner = `-- name: GetTopicsByOwner :many
+SELECT id, start_at, expired_at
+FROM topics
+WHERE owner_id = $1
+`
+
+type GetTopicsByOwnerRow struct {
+	ID        pgtype.UUID `json:"id"`
+	StartAt   int32       `json:"start_at"`
+	ExpiredAt int32       `json:"expired_at"`
+}
+
+func (q *Queries) GetTopicsByOwner(ctx context.Context, ownerID pgtype.UUID) ([]GetTopicsByOwnerRow, error) {
+	rows, err := q.db.Query(ctx, getTopicsByOwner, ownerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetTopicsByOwnerRow
+	for rows.Next() {
+		var i GetTopicsByOwnerRow
+		if err := rows.Scan(&i.ID, &i.StartAt, &i.ExpiredAt); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateItemPhotoUrl = `-- name: UpdateItemPhotoUrl :exec
 UPDATE items
 SET photo_url = $2

@@ -8,6 +8,11 @@ INSERT INTO voters (topic_id)
 VALUES ($1)
 RETURNING id;
 
+-- name: GetTopicsByOwner :many
+SELECT id, start_at, expired_at
+FROM topics
+WHERE owner_id = $1;
+
 -- name: GetTopicOwner :one
 SELECT owner_id
 FROM topics

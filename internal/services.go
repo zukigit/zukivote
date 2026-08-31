@@ -279,6 +279,50 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (*CreateTopic
 	return &result, nil
 }
 
+type TopicResult struct {
+	ID        string `json:"id"`
+	StartAt   int32  `json:"start_at"`
+	ExpiredAt int32  `json:"expired_at"`
+}
+
+type GetTopicsResult struct {
+	Topics []TopicResult `json:"topics"`
+}
+
+func (s *Service) GetTopics(ctx context.Context) (*GetTopicsResult, error) {
+	ownerID, ok := userIDFromContext(ctx)
+	if !ok {
+		return nil, ErrUnauthenticated
+	}
+
+	var owner pgtype.UUID
+	if err := owner.Scan(ownerID); err != nil {
+		return nil, ErrInvalidUser
+	}
+
+	if _, err := sqlc.New(s.pool).GetUserByID(ctx, owner); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrInvalidUser
+		}
+		return nil, internalError(err.Error())
+	}
+
+	rows, err := sqlc.New(s.pool).GetTopicsByOwner(ctx, owner)
+	if err != nil {
+		return nil, internalError(fmt.Sprintf("GetTopicsByOwner() failed, err: %s", err.Error()))
+	}
+
+	result := &GetTopicsResult{Topics: make([]TopicResult, 0, len(rows))}
+	for _, row := range rows {
+		result.Topics = append(result.Topics, TopicResult{
+			ID:        row.ID.String(),
+			StartAt:   row.StartAt,
+			ExpiredAt: row.ExpiredAt,
+		})
+	}
+	return result, nil
+}
+
 type CreateItemValue struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
