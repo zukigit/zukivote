@@ -6,3 +6,5 @@ variables:
     name: USER_PASSWD
   - secret: true
     name: LOGIN_TOKEN
+  - secret: true
+    name: TOPIC_ID

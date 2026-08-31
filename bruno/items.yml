@@ -1,0 +1,30 @@
+info:
+  name: items
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: 127.0.0.1:8080/items
+  headers:
+    - name: Authorization
+      value: Bearer {{LOGIN_TOKEN}}
+  body:
+    type: multipart-form
+    data:
+      - name: topic_id
+        type: text
+        value: "{{TOPIC_ID}}"
+      - name: description
+        type: text
+        value: Class Leader
+      - name: photo
+        type: file
+        value:
+          - /home/zuki/Pictures/mypp.jpg
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
