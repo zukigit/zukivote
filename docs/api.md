@@ -89,6 +89,30 @@ Authorization: Bearer <jwt>
 
 ---
 
+### GET /topics
+
+List topics owned by the authenticated user. Requires authentication.
+
+**Headers**
+
+```
+Authorization: Bearer <jwt>
+```
+
+**Responses**
+
+| Status | Body |
+| ------ | ---- |
+| 200 OK | `{ "topics": [{ "id": "<uuid>", "start_at": 1700000000, "expired_at": 1700086400 }, ...] }` |
+| 401 Unauthorized | `{ "error": "invalid token" }` / `{ "error": "unauthenticated" }` / `{ "error": "invalid user" }` |
+| 500 Internal Server Error | `{ "error": "internal error" }` |
+
+**Notes**
+
+- Returns an empty `topics` array when the user has no topics.
+
+---
+
 ### POST /items
 
 Add an item to an existing topic. Requires authentication.

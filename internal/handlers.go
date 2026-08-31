@@ -24,6 +24,7 @@ func (h *Handler) Register(r *mux.Router) {
 	protected := r.PathPrefix("/topics").Subrouter()
 	protected.Use(h.authMiddleware)
 	protected.HandleFunc("", h.CreateTopic).Methods(http.MethodPost)
+	protected.HandleFunc("", h.GetTopics).Methods(http.MethodGet)
 
 	items := r.PathPrefix("/items").Subrouter()
 	items.Use(h.authMiddleware)
@@ -107,4 +108,14 @@ func (h *Handler) CreateItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusCreated, result)
+}
+
+func (h *Handler) GetTopics(w http.ResponseWriter, r *http.Request) {
+	result, err := h.users.GetTopics(r.Context())
+	if err != nil {
+		writeServiceError(w, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, result)
 }
