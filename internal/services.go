@@ -323,6 +323,90 @@ func (s *Service) GetTopics(ctx context.Context) (*GetTopicsResult, error) {
 	return result, nil
 }
 
+type ItemValueResult struct {
+	ID    int32  `json:"id"`
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+type ItemResult struct {
+	ID          int32             `json:"id"`
+	Description string            `json:"description"`
+	Values      []ItemValueResult `json:"values"`
+}
+
+type GetItemsResult struct {
+	Items []ItemResult `json:"items"`
+}
+
+func (s *Service) GetItems(ctx context.Context, topicIDStr string) (*GetItemsResult, error) {
+	userID, ok := userIDFromContext(ctx)
+	if !ok {
+		return nil, ErrUnauthenticated
+	}
+
+	if topicIDStr == "" {
+		return nil, ErrInvalidItemParams
+	}
+
+	var topicID pgtype.UUID
+	if err := topicID.Scan(topicIDStr); err != nil {
+		return nil, ErrInvalidItemParams
+	}
+
+	ownerID, err := sqlc.New(s.pool).GetTopicOwner(ctx, topicID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrTopicNotFound
+		}
+		return nil, internalError(fmt.Sprintf("GetTopicOwner() failed, err: %s", err.Error()))
+	}
+	if ownerID.String() != userID {
+		return nil, ErrForbidden
+	}
+
+	rows, err := sqlc.New(s.pool).GetItemsByTopic(ctx, topicID)
+	if err != nil {
+		return nil, internalError(fmt.Sprintf("GetItemsByTopic() failed, err: %s", err.Error()))
+	}
+
+	valuesByItem, err := s.valuesByItem(ctx, topicID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := &GetItemsResult{Items: make([]ItemResult, 0, len(rows))}
+	for _, row := range rows {
+		values := valuesByItem[row.ID]
+		if values == nil {
+			values = []ItemValueResult{}
+		}
+		result.Items = append(result.Items, ItemResult{
+			ID:          row.ID,
+			Description: row.Description,
+			Values:      values,
+		})
+	}
+	return result, nil
+}
+
+func (s *Service) valuesByItem(ctx context.Context, topicID pgtype.UUID) (map[int32][]ItemValueResult, error) {
+	rows, err := sqlc.New(s.pool).GetItemValuesByTopic(ctx, topicID)
+	if err != nil {
+		return nil, internalError(fmt.Sprintf("GetItemValuesByTopic() failed, err: %s", err.Error()))
+	}
+
+	valuesByItem := make(map[int32][]ItemValueResult)
+	for _, row := range rows {
+		valuesByItem[row.ItemID] = append(valuesByItem[row.ItemID], ItemValueResult{
+			ID:    row.ID,
+			Key:   row.Key,
+			Value: row.Value,
+		})
+	}
+	return valuesByItem, nil
+}
+
 type CreateItemValue struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`

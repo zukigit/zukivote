@@ -149,3 +149,37 @@ Authorization: Bearer <jwt>
 
 - Only the owner of the topic can add items.
 - The photo is required and saved under `/app/photos/`; its path is returned as `photo_url`.
+
+---
+
+### GET /items
+
+List items of a topic. Requires authentication.
+
+**Headers**
+
+```
+Authorization: Bearer <jwt>
+```
+
+**Query parameters**
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `topic_id` | string | UUID of the topic to list items from |
+
+**Responses**
+
+| Status | Body |
+| ------ | ---- |
+| 200 OK | `{ "items": [{ "id": 1, "description": "...", "values": [{ "id": 1, "key": "color", "value": "red" }] }, ...] }` |
+| 400 Bad Request | `{ "error": "invalid item params" }` |
+| 401 Unauthorized | `{ "error": "invalid token" }` / `{ "error": "unauthenticated" }` |
+| 403 Forbidden | `{ "error": "forbidden" }` |
+| 404 Not Found | `{ "error": "topic not found" }` |
+| 500 Internal Server Error | `{ "error": "internal error" }` |
+
+**Notes**
+
+- Only the owner of the topic can list its items.
+- Returns an empty `items` array when the topic has no items.

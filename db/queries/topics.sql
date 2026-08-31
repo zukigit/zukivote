@@ -32,3 +32,14 @@ RETURNING id;
 UPDATE items
 SET photo_url = $2
 WHERE id = $1;
+
+-- name: GetItemsByTopic :many
+SELECT id, description
+FROM items
+WHERE topic_id = $1;
+
+-- name: GetItemValuesByTopic :many
+SELECT item_values.id, item_values.item_id, item_values.key, item_values.value
+FROM item_values
+JOIN items ON items.id = item_values.item_id
+WHERE items.topic_id = $1;

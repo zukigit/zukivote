@@ -80,6 +80,69 @@ func (q *Queries) CreateVoter(ctx context.Context, topicID pgtype.UUID) (pgtype.
 	return id, err
 }
 
+const getItemValuesByTopic = `-- name: GetItemValuesByTopic :many
+SELECT item_values.id, item_values.item_id, item_values.key, item_values.value
+FROM item_values
+JOIN items ON items.id = item_values.item_id
+WHERE items.topic_id = $1
+`
+
+func (q *Queries) GetItemValuesByTopic(ctx context.Context, topicID pgtype.UUID) ([]ItemValue, error) {
+	rows, err := q.db.Query(ctx, getItemValuesByTopic, topicID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ItemValue
+	for rows.Next() {
+		var i ItemValue
+		if err := rows.Scan(
+			&i.ID,
+			&i.ItemID,
+			&i.Key,
+			&i.Value,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getItemsByTopic = `-- name: GetItemsByTopic :many
+SELECT id, description
+FROM items
+WHERE topic_id = $1
+`
+
+type GetItemsByTopicRow struct {
+	ID          int32  `json:"id"`
+	Description string `json:"description"`
+}
+
+func (q *Queries) GetItemsByTopic(ctx context.Context, topicID pgtype.UUID) ([]GetItemsByTopicRow, error) {
+	rows, err := q.db.Query(ctx, getItemsByTopic, topicID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetItemsByTopicRow
+	for rows.Next() {
+		var i GetItemsByTopicRow
+		if err := rows.Scan(&i.ID, &i.Description); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getTopicOwner = `-- name: GetTopicOwner :one
 SELECT owner_id
 FROM topics
