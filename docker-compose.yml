@@ -33,3 +33,13 @@ services:
     depends_on:
       db:
         condition: service_healthy
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    pull_policy: build
+    ports:
+      - "5173:80"
+    depends_on:
+      - server
