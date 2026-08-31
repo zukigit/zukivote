@@ -8,3 +8,5 @@ variables:
     name: LOGIN_TOKEN
   - secret: true
     name: TOPIC_ID
+  - secret: true
+    name: ITEM_ID

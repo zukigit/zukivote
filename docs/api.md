@@ -194,7 +194,7 @@ Serve an item's photo as an image.
 
 | Parameter | Type | Description |
 | --------- | ---- | ----------- |
-| `id` | integer | Item id |
+| `item_id` | integer | Item id |
 
 **Responses**
 

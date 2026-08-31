@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -137,7 +138,7 @@ func (h *Handler) GetItems(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetItemPhoto(w http.ResponseWriter, r *http.Request) {
-	photoURL, err := h.users.GetItemPhotoURL(r.Context(), r.URL.Query().Get("id"))
+	photoURL, err := h.users.GetItemPhotoURL(r.Context(), r.URL.Query().Get("item_id"))
 	if err != nil {
 		writeServiceError(w, err)
 		return
@@ -147,7 +148,7 @@ func (h *Handler) GetItemPhoto(w http.ResponseWriter, r *http.Request) {
 
 	f, err := os.Open(photoURL)
 	if err != nil {
-		writeError(w, http.StatusNotFound, "photo not found")
+		writeServiceError(w, fmt.Errorf("file open failed, err: %s", err.Error()))
 		return
 	}
 	defer f.Close()
