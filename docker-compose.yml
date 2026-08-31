@@ -37,9 +37,6 @@ services:
     build:
       context: ./web
       dockerfile: Dockerfile
-      args:
-        VITE_API_URL: http://server:8080
-    ports:
-      - "80:80"
+    network_mode: host
     depends_on:
       - server
