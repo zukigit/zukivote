@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -51,6 +52,7 @@ var (
 	ErrInvalidJSON             = &ServiceError{StatusCode: http.StatusBadRequest, Message: "invalid request body"}
 	ErrUnauthenticated         = &ServiceError{StatusCode: http.StatusUnauthorized, Message: "unauthenticated"}
 	ErrInvalidUser             = &ServiceError{StatusCode: http.StatusUnauthorized, Message: "invalid user"}
+	ErrPhotoNotFound           = &ServiceError{StatusCode: http.StatusNotFound, Message: "photo not found"}
 )
 
 const jwtTTL = 24 * time.Hour
@@ -405,6 +407,26 @@ func (s *Service) valuesByItem(ctx context.Context, topicID pgtype.UUID) (map[in
 		})
 	}
 	return valuesByItem, nil
+}
+
+func (s *Service) GetItemPhotoURL(ctx context.Context, itemIDStr string) (string, error) {
+	itemID, err := strconv.ParseInt(itemIDStr, 10, 32)
+	if err != nil {
+		return "", internalError(fmt.Sprintf("GetItemPhotoUrl() failed, err: %s", err.Error()))
+	}
+
+	row, err := sqlc.New(s.pool).GetItemPhotoUrl(ctx, int32(itemID))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", ErrPhotoNotFound
+		}
+		return "", internalError(fmt.Sprintf("GetItemPhotoUrl() failed, err: %s", err.Error()))
+	}
+	if !row.Valid || row.String == "" {
+		return "", ErrPhotoNotFound
+	}
+
+	return row.String, nil
 }
 
 type CreateItemValue struct {

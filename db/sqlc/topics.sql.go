@@ -80,6 +80,19 @@ func (q *Queries) CreateVoter(ctx context.Context, topicID pgtype.UUID) (pgtype.
 	return id, err
 }
 
+const getItemPhotoUrl = `-- name: GetItemPhotoUrl :one
+SELECT photo_url
+FROM items
+WHERE id = $1
+`
+
+func (q *Queries) GetItemPhotoUrl(ctx context.Context, id int32) (pgtype.Text, error) {
+	row := q.db.QueryRow(ctx, getItemPhotoUrl, id)
+	var photo_url pgtype.Text
+	err := row.Scan(&photo_url)
+	return photo_url, err
+}
+
 const getItemValuesByTopic = `-- name: GetItemValuesByTopic :many
 SELECT item_values.id, item_values.item_id, item_values.key, item_values.value
 FROM item_values

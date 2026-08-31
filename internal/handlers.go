@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"os"
+	"path/filepath"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -25,6 +28,8 @@ func (h *Handler) Register(r *mux.Router) {
 	protected.Use(h.authMiddleware)
 	protected.HandleFunc("", h.CreateTopic).Methods(http.MethodPost)
 	protected.HandleFunc("", h.GetTopics).Methods(http.MethodGet)
+
+	r.HandleFunc("/photo", h.GetItemPhoto).Methods(http.MethodGet)
 
 	items := r.PathPrefix("/items").Subrouter()
 	items.Use(h.authMiddleware)
@@ -129,4 +134,23 @@ func (h *Handler) GetItems(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, result)
+}
+
+func (h *Handler) GetItemPhoto(w http.ResponseWriter, r *http.Request) {
+	photoURL, err := h.users.GetItemPhotoURL(r.Context(), r.URL.Query().Get("id"))
+	if err != nil {
+		writeServiceError(w, err)
+		return
+	}
+
+	filename := filepath.Base(photoURL)
+
+	f, err := os.Open(photoURL)
+	if err != nil {
+		writeError(w, http.StatusNotFound, "photo not found")
+		return
+	}
+	defer f.Close()
+
+	http.ServeContent(w, r, filename, time.Now(), f)
 }

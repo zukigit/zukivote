@@ -38,6 +38,11 @@ SELECT id, description
 FROM items
 WHERE topic_id = $1;
 
+-- name: GetItemPhotoUrl :one
+SELECT photo_url
+FROM items
+WHERE id = $1;
+
 -- name: GetItemValuesByTopic :many
 SELECT item_values.id, item_values.item_id, item_values.key, item_values.value
 FROM item_values

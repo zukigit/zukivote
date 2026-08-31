@@ -183,3 +183,28 @@ Authorization: Bearer <jwt>
 
 - Only the owner of the topic can list its items.
 - Returns an empty `items` array when the topic has no items.
+
+---
+
+### GET /photo
+
+Serve an item's photo as an image.
+
+**Query parameters**
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `id` | integer | Item id |
+
+**Responses**
+
+| Status | Body |
+| ------ | ---- |
+| 200 OK | image content of the item photo |
+| 404 Not Found | `{ "error": "photo not found" }` |
+| 500 Internal Server Error | `{ "error": "internal error" }` |
+
+**Notes**
+
+- The photo path is looked up from the `items` table by `id`, then served from `/app/photos/`.
+- No authentication is required so voters can view item photos.
