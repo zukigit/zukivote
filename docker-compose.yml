@@ -4,13 +4,13 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${DB_USER:-user1}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-123}
+      - POSTGRES_DB=${POSTGRES_DB:-zukivote}
     volumes:
       - ./db/migrations:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-user1} -d ${POSTGRES_DB:-zukivote}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -24,11 +24,11 @@ services:
     volumes:
       - ./photos:/app/photos
     environment:
-      - DB_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
+      - DB_USER=${DB_USER:-user1}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-123}
+      - POSTGRES_DB=${POSTGRES_DB:-zukivote}
       - DB_HOST=db
-      - JWT_SECRET=${JWT_SECRET}
+      - JWT_SECRET=${JWT_SECRET:-123}
     depends_on:
       db:
         condition: service_healthy
