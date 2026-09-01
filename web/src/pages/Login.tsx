@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { login } from '../api/client'
+import { setToken } from '../api/auth'
 import './Auth.css'
 
 function Login() {
@@ -28,8 +29,8 @@ function Login() {
     }
 
     if (data?.token) {
-      localStorage.setItem('token', data.token)
-      navigate('/')
+      setToken(data.token)
+      navigate('/dashboard')
     }
   }
 

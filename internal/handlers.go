@@ -28,6 +28,8 @@ func (h *Handler) Register(r *mux.Router) {
 	r.HandleFunc("/signup", h.Signup).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/login", h.Login).Methods(http.MethodPost, http.MethodOptions)
 
+	r.Handle("/me", h.authMiddleware(http.HandlerFunc(h.GetMe))).Methods(http.MethodGet, http.MethodOptions)
+
 	protected := r.PathPrefix("/topics").Subrouter()
 	protected.Use(h.authMiddleware)
 	protected.HandleFunc("", h.CreateTopic).Methods(http.MethodPost, http.MethodOptions)
@@ -77,6 +79,16 @@ func (h *Handler) Signup(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	result, err := h.users.Login(r.Context(), r.Body)
+	if err != nil {
+		writeServiceError(w, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, result)
+}
+
+func (h *Handler) GetMe(w http.ResponseWriter, r *http.Request) {
+	result, err := h.users.GetMe(r.Context())
 	if err != nil {
 		writeServiceError(w, err)
 		return

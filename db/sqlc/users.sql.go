@@ -12,16 +12,21 @@ import (
 )
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id
+SELECT id, user_name
 FROM users
 WHERE id = $1
 `
 
-func (q *Queries) GetUserByID(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error) {
+type GetUserByIDRow struct {
+	ID       pgtype.UUID `json:"id"`
+	UserName string      `json:"user_name"`
+}
+
+func (q *Queries) GetUserByID(ctx context.Context, id pgtype.UUID) (GetUserByIDRow, error) {
 	row := q.db.QueryRow(ctx, getUserByID, id)
-	var id_2 pgtype.UUID
-	err := row.Scan(&id_2)
-	return id_2, err
+	var i GetUserByIDRow
+	err := row.Scan(&i.ID, &i.UserName)
+	return i, err
 }
 
 const login = `-- name: Login :one

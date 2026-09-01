@@ -9,6 +9,6 @@ FROM users
 WHERE user_name = $1;
 
 -- name: GetUserByID :one
-SELECT id
+SELECT id, user_name
 FROM users
 WHERE id = $1;

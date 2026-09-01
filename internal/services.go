@@ -429,6 +429,33 @@ func (s *Service) GetItemPhotoURL(ctx context.Context, itemIDStr string) (string
 	return row.String, nil
 }
 
+type MeResult struct {
+	ID       string `json:"id"`
+	UserName string `json:"user_name"`
+}
+
+func (s *Service) GetMe(ctx context.Context) (*MeResult, error) {
+	userID, ok := userIDFromContext(ctx)
+	if !ok {
+		return nil, ErrUnauthenticated
+	}
+
+	var id pgtype.UUID
+	if err := id.Scan(userID); err != nil {
+		return nil, ErrInvalidUser
+	}
+
+	row, err := sqlc.New(s.pool).GetUserByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrInvalidUser
+		}
+		return nil, internalError(err.Error())
+	}
+
+	return &MeResult{ID: row.ID.String(), UserName: row.UserName}, nil
+}
+
 type CreateItemValue struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`

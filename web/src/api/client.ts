@@ -1,3 +1,5 @@
+import { getToken } from './auth'
+
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
 const API_TIMEOUT = 5000
 
@@ -11,12 +13,11 @@ async function request<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<ApiResponse<T>> {
-  const token = localStorage.getItem('token')
-
   const headers: HeadersInit = {
     ...options.headers,
   }
 
+  const token = getToken()
   if (token) {
     (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`
   }
@@ -68,6 +69,11 @@ export interface SignupResponse {
   message: string
 }
 
+export interface User {
+  id: string
+  user_name: string
+}
+
 export function login(data: LoginRequest): Promise<ApiResponse<LoginResponse>> {
   return request<LoginResponse>('/login', {
     method: 'POST',
@@ -80,4 +86,8 @@ export function signup(data: SignupRequest): Promise<ApiResponse<SignupResponse>
     method: 'POST',
     body: JSON.stringify(data),
   })
+}
+
+export function getMe(): Promise<ApiResponse<User>> {
+  return request<User>('/me')
 }
