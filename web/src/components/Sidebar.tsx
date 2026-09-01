@@ -4,7 +4,12 @@ import { getMe, type User } from '../api/client'
 import { clearToken } from '../api/auth'
 import './Layout.css'
 
-function Sidebar() {
+interface SidebarProps {
+  open: boolean
+  onClose: () => void
+}
+
+function Sidebar({ open, onClose }: SidebarProps) {
   const navigate = useNavigate()
   const [user, setUser] = useState<User | null>(null)
 
@@ -25,15 +30,19 @@ function Sidebar() {
     navigate('/login', { replace: true })
   }
 
+  function handleNavClick() {
+    onClose()
+  }
+
   return (
-    <nav className="sidebar">
+    <nav className={`sidebar${open ? ' open' : ''}`}>
       <div className="sidebar-header">
         <span className="sidebar-title">zukivote</span>
         <span className="sidebar-username">{user?.user_name ?? '...'}</span>
       </div>
       <ul className="sidebar-links">
         <li>
-          <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'sidebar-link active' : 'sidebar-link'}>
+          <NavLink to="/dashboard" onClick={handleNavClick} className={({ isActive }) => isActive ? 'sidebar-link active' : 'sidebar-link'}>
             Dashboard
           </NavLink>
         </li>

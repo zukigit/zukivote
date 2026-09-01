@@ -99,3 +99,26 @@ html, body {
   background-color: #2a4a6a;
   cursor: not-allowed;
 }
+
+@media (max-width: 768px) {
+  .auth-container {
+    padding: 1rem;
+  }
+
+  .auth-card {
+    padding: 1.25rem;
+  }
+
+  .auth-card h1 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .form-group input {
+    padding: 0.6rem;
+  }
+
+  .auth-button {
+    padding: 0.6rem;
+  }
+}

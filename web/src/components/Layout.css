@@ -3,6 +3,25 @@
   min-height: 100vh;
 }
 
+.menu-toggle {
+  display: none;
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 1002;
+  background: #1a1a1a;
+  color: #e0e0e0;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+  font-size: 1.25rem;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+}
+
+.sidebar-overlay {
+  display: none;
+}
+
 .sidebar {
   width: 200px;
   background-color: #1a1a1a;
@@ -84,4 +103,57 @@
   padding: 2rem;
   background-color: #121212;
   color: #e0e0e0;
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 180px;
+  }
+}
+
+/* Phone */
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: block;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -260px;
+    width: 260px;
+    height: 100vh;
+    z-index: 1000;
+    transition: left 0.25s ease;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+
+  .sidebar-header {
+    padding-top: 4rem;
+  }
+
+  .sidebar-links {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+  }
+
+  .main-content {
+    padding: 1rem;
+    padding-top: 4rem;
+  }
 }
