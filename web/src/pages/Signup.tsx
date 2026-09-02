@@ -9,11 +9,13 @@ function Signup() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+    setSuccess('')
 
     if (password !== confirmPassword) {
       setError('Passwords do not match')
@@ -22,7 +24,7 @@ function Signup() {
 
     setLoading(true)
 
-    const { error: apiError } = await signup({
+    const { data, error: apiError } = await signup({
       user_name: userName,
       password,
     })
@@ -34,7 +36,13 @@ function Signup() {
       return
     }
 
-    navigate('/login')
+    if (data?.message) {
+      setSuccess(data.message)
+    }
+
+    setTimeout(() => {
+      navigate('/login')
+    }, 1500)
   }
 
   return (
@@ -42,6 +50,7 @@ function Signup() {
       <div className="auth-card">
         <h1>Sign Up</h1>
         {error && <p className="auth-error">{error}</p>}
+        {success && <p className="auth-success">{success}</p>}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="username">Username</label>
