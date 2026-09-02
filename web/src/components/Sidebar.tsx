@@ -46,6 +46,11 @@ function Sidebar({ open, onClose }: SidebarProps) {
             Dashboard
           </NavLink>
         </li>
+        <li>
+          <NavLink to="/topics" onClick={handleNavClick} className={({ isActive }) => isActive ? 'sidebar-link active' : 'sidebar-link'}>
+            Topics
+          </NavLink>
+        </li>
       </ul>
       <div className="sidebar-footer">
         <button className="sidebar-logout" onClick={handleLogout}>

@@ -74,6 +74,16 @@ export interface User {
   user_name: string
 }
 
+export interface Topic {
+  id: string
+  start_at: number
+  expired_at: number
+}
+
+export interface GetTopicsResponse {
+  topics: Topic[]
+}
+
 export function login(data: LoginRequest): Promise<ApiResponse<LoginResponse>> {
   return request<LoginResponse>('/login', {
     method: 'POST',
@@ -90,4 +100,8 @@ export function signup(data: SignupRequest): Promise<ApiResponse<SignupResponse>
 
 export function getMe(): Promise<ApiResponse<User>> {
   return request<User>('/me')
+}
+
+export function getTopics(): Promise<ApiResponse<GetTopicsResponse>> {
+  return request<GetTopicsResponse>('/topics')
 }
