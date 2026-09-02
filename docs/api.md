@@ -67,8 +67,8 @@ Authorization: Bearer <jwt>
 ```json
 {
   "name": "my-topic",
-  "start_at": 1700000000,
-  "expired_at": 1700086400,
+  "start_at": "2024-01-01T00:00:00Z",
+  "expired_at": "2024-01-02T00:00:00Z",
   "voter_count": 3
 }
 ```
@@ -85,7 +85,7 @@ Authorization: Bearer <jwt>
 
 **Notes**
 
-- `start_at` and `expired_at` are unix timestamps.
+- `start_at` and `expired_at` are ISO 8601 timestamps.
 - The authenticated user becomes the topic owner (`owner_id`).
 - `voter_count` voters are created along with the topic.
 
@@ -105,7 +105,7 @@ Authorization: Bearer <jwt>
 
 | Status | Body |
 | ------ | ---- |
-| 200 OK | `{ "topics": [{ "id": "<uuid>", "name": "my-topic", "start_at": 1700000000, "expired_at": 1700086400 }, ...] }` |
+| 200 OK | `{ "topics": [{ "id": "<uuid>", "name": "my-topic", "start_at": "2024-01-01T00:00:00Z", "expired_at": "2024-01-02T00:00:00Z" }, ...] }` |
 | 401 Unauthorized | `{ "error": "invalid token" }` / `{ "error": "unauthenticated" }` / `{ "error": "invalid user" }` |
 | 500 Internal Server Error | `{ "error": "internal error" }` |
 

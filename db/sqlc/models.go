@@ -30,11 +30,11 @@ type Record struct {
 }
 
 type Topic struct {
-	ID        pgtype.UUID `json:"id"`
-	OwnerID   pgtype.UUID `json:"owner_id"`
-	Name      string      `json:"name"`
-	StartAt   int32       `json:"start_at"`
-	ExpiredAt int32       `json:"expired_at"`
+	ID        pgtype.UUID        `json:"id"`
+	OwnerID   pgtype.UUID        `json:"owner_id"`
+	Name      string             `json:"name"`
+	StartAt   pgtype.Timestamptz `json:"start_at"`
+	ExpiredAt pgtype.Timestamptz `json:"expired_at"`
 }
 
 type User struct {

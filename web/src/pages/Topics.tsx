@@ -36,8 +36,8 @@ function Topics() {
     // TODO: implement backend call
   }
 
-  function formatDate(timestamp: number) {
-    return new Date(timestamp * 1000).toLocaleDateString()
+  function formatDate(dateStr: string) {
+    return new Date(dateStr).toLocaleDateString()
   }
 
   if (loading) {

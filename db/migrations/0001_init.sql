@@ -8,8 +8,8 @@ CREATE TABLE topics (
     id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     owner_id   UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name       VARCHAR NOT NULL UNIQUE,
-    start_at   INTEGER NOT NULL,
-    expired_at INTEGER NOT NULL
+    start_at   TIMESTAMPTZ NOT NULL,
+    expired_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE voters (
