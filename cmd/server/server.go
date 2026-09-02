@@ -33,11 +33,6 @@ func main() {
 	}
 	defer pool.Close()
 
-	if err := pool.Ping(ctx); err != nil {
-		fmt.Fprintln(os.Stderr, "failed to ping database:", err)
-		os.Exit(1)
-	}
-
 	svc, err := internal.NewService(pool, os.Getenv("JWT_SECRET"))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "failed to create service:", err)
