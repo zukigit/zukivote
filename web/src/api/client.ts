@@ -76,6 +76,7 @@ export interface User {
 
 export interface Topic {
   id: string
+  name: string
   start_at: number
   expired_at: number
 }

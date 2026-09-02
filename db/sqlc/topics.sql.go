@@ -49,19 +49,25 @@ func (q *Queries) CreateItemValue(ctx context.Context, arg CreateItemValueParams
 }
 
 const createTopic = `-- name: CreateTopic :one
-INSERT INTO topics (owner_id, start_at, expired_at)
-VALUES ($1, $2, $3)
+INSERT INTO topics (owner_id, name, start_at, expired_at)
+VALUES ($1, $2, $3, $4)
 RETURNING id
 `
 
 type CreateTopicParams struct {
 	OwnerID   pgtype.UUID `json:"owner_id"`
+	Name      string      `json:"name"`
 	StartAt   int32       `json:"start_at"`
 	ExpiredAt int32       `json:"expired_at"`
 }
 
 func (q *Queries) CreateTopic(ctx context.Context, arg CreateTopicParams) (pgtype.UUID, error) {
-	row := q.db.QueryRow(ctx, createTopic, arg.OwnerID, arg.StartAt, arg.ExpiredAt)
+	row := q.db.QueryRow(ctx, createTopic,
+		arg.OwnerID,
+		arg.Name,
+		arg.StartAt,
+		arg.ExpiredAt,
+	)
 	var id pgtype.UUID
 	err := row.Scan(&id)
 	return id, err
@@ -170,13 +176,14 @@ func (q *Queries) GetTopicOwner(ctx context.Context, id pgtype.UUID) (pgtype.UUI
 }
 
 const getTopicsByOwner = `-- name: GetTopicsByOwner :many
-SELECT id, start_at, expired_at
+SELECT id, name, start_at, expired_at
 FROM topics
 WHERE owner_id = $1
 `
 
 type GetTopicsByOwnerRow struct {
 	ID        pgtype.UUID `json:"id"`
+	Name      string      `json:"name"`
 	StartAt   int32       `json:"start_at"`
 	ExpiredAt int32       `json:"expired_at"`
 }
@@ -190,7 +197,12 @@ func (q *Queries) GetTopicsByOwner(ctx context.Context, ownerID pgtype.UUID) ([]
 	var items []GetTopicsByOwnerRow
 	for rows.Next() {
 		var i GetTopicsByOwnerRow
-		if err := rows.Scan(&i.ID, &i.StartAt, &i.ExpiredAt); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.StartAt,
+			&i.ExpiredAt,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

@@ -57,6 +57,7 @@ function Topics() {
         <thead>
           <tr>
             <th>#</th>
+            <th>Name</th>
             <th>Start</th>
             <th>End</th>
           </tr>
@@ -65,6 +66,7 @@ function Topics() {
           {topics.map((topic, index) => (
             <tr key={topic.id}>
               <td>{index + 1}</td>
+              <td>{topic.name}</td>
               <td>{formatDate(topic.start_at)}</td>
               <td>{formatDate(topic.expired_at)}</td>
             </tr>

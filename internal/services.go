@@ -41,6 +41,7 @@ var (
 	ErrUserNameOrPasswdIsEmpty = &ServiceError{StatusCode: http.StatusBadRequest, Message: "user_name and password are required"}
 	ErrNilPool                 = &ServiceError{StatusCode: http.StatusInternalServerError, Message: "pool cannot be nil"}
 	ErrInvalidTopicParams      = &ServiceError{StatusCode: http.StatusBadRequest, Message: "invalid topic params"}
+	ErrTopicNameTaken          = &ServiceError{StatusCode: http.StatusConflict, Message: "topic name is already taken"}
 	ErrInvalidItemParams       = &ServiceError{StatusCode: http.StatusBadRequest, Message: "invalid item params"}
 	ErrEmptyItemValue          = &ServiceError{StatusCode: http.StatusBadRequest, Message: "item value key and value are required"}
 	ErrTopicNotFound           = &ServiceError{StatusCode: http.StatusNotFound, Message: "topic not found"}
@@ -209,9 +210,10 @@ type credentialsRequest struct {
 }
 
 type CreateTopicRequest struct {
-	StartAt    int32 `json:"start_at"`
-	ExpiredAt  int32 `json:"expired_at"`
-	VoterCount int32 `json:"voter_count"`
+	Name       string `json:"name"`
+	StartAt    int32  `json:"start_at"`
+	ExpiredAt  int32  `json:"expired_at"`
+	VoterCount int32  `json:"voter_count"`
 }
 
 type CreateTopicResult struct {
@@ -232,7 +234,7 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (*CreateTopic
 		return nil, ErrInvalidJSON
 	}
 
-	if ownerID == "" || req.VoterCount <= 0 {
+	if ownerID == "" || req.Name == "" || req.VoterCount <= 0 {
 		return nil, ErrInvalidTopicParams
 	}
 
@@ -258,10 +260,15 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (*CreateTopic
 
 	topicID, err := q.CreateTopic(ctx, sqlc.CreateTopicParams{
 		OwnerID:   owner,
+		Name:      req.Name,
 		StartAt:   req.StartAt,
 		ExpiredAt: req.ExpiredAt,
 	})
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return nil, ErrTopicNameTaken
+		}
 		return nil, internalError(fmt.Sprintf("CreateTopic() failed, %s", err.Error()))
 	}
 
@@ -283,6 +290,7 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (*CreateTopic
 
 type TopicResult struct {
 	ID        string `json:"id"`
+	Name      string `json:"name"`
 	StartAt   int32  `json:"start_at"`
 	ExpiredAt int32  `json:"expired_at"`
 }
@@ -318,6 +326,7 @@ func (s *Service) GetTopics(ctx context.Context) (*GetTopicsResult, error) {
 	for _, row := range rows {
 		result.Topics = append(result.Topics, TopicResult{
 			ID:        row.ID.String(),
+			Name:      row.Name,
 			StartAt:   row.StartAt,
 			ExpiredAt: row.ExpiredAt,
 		})
