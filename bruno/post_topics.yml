@@ -15,7 +15,8 @@ http:
       {
         "start_at": 1700000000,
         "expired_at": 1700086400,
-        "voter_count": 3
+        "voter_count": 3,
+        "name": "my topic"
       }
 
 settings:
