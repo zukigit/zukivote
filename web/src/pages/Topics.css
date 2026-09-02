@@ -13,6 +13,11 @@
   margin: 0;
 }
 
+.topics-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .topics-error {
   background-color: #2a1515;
   color: #ff6b6b;
@@ -34,6 +39,11 @@
 
 .topic-button:hover {
   background-color: #357abd;
+}
+
+.topic-refresh {
+  padding: 0.5rem 0.6rem;
+  font-size: 1.1rem;
 }
 
 .topics-table {
