@@ -55,10 +55,10 @@ RETURNING id
 `
 
 type CreateTopicParams struct {
-	OwnerID   pgtype.UUID        `json:"owner_id"`
-	Name      string             `json:"name"`
-	StartAt   pgtype.Timestamptz `json:"start_at"`
-	ExpiredAt pgtype.Timestamptz `json:"expired_at"`
+	OwnerID   pgtype.UUID `json:"owner_id"`
+	Name      string      `json:"name"`
+	StartAt   int32       `json:"start_at"`
+	ExpiredAt int32       `json:"expired_at"`
 }
 
 func (q *Queries) CreateTopic(ctx context.Context, arg CreateTopicParams) (pgtype.UUID, error) {
@@ -182,10 +182,10 @@ WHERE owner_id = $1
 `
 
 type GetTopicsByOwnerRow struct {
-	ID        pgtype.UUID        `json:"id"`
-	Name      string             `json:"name"`
-	StartAt   pgtype.Timestamptz `json:"start_at"`
-	ExpiredAt pgtype.Timestamptz `json:"expired_at"`
+	ID        pgtype.UUID `json:"id"`
+	Name      string      `json:"name"`
+	StartAt   int32       `json:"start_at"`
+	ExpiredAt int32       `json:"expired_at"`
 }
 
 func (q *Queries) GetTopicsByOwner(ctx context.Context, ownerID pgtype.UUID) ([]GetTopicsByOwnerRow, error) {

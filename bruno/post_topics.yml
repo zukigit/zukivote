@@ -13,8 +13,8 @@ http:
     type: json
     data: |-
       {
-        "start_at": "2024-01-01T00:00:00+06:30",
-        "expired_at": "2024-01-02T00:00:00+06:30",
+        "start_at": 1700000000,
+        "expired_at": 1700086400,
         "voter_count": 3,
         "name": "my topic"
       }

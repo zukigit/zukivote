@@ -210,10 +210,10 @@ type credentialsRequest struct {
 }
 
 type CreateTopicRequest struct {
-	Name       string    `json:"name"`
-	StartAt    time.Time `json:"start_at"`
-	ExpiredAt  time.Time `json:"expired_at"`
-	VoterCount int32     `json:"voter_count"`
+	Name       string `json:"name"`
+	StartAt    int32  `json:"start_at"`
+	ExpiredAt  int32  `json:"expired_at"`
+	VoterCount int32  `json:"voter_count"`
 }
 
 type CreateTopicResult struct {
@@ -261,8 +261,8 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (*CreateTopic
 	topicID, err := q.CreateTopic(ctx, sqlc.CreateTopicParams{
 		OwnerID:   owner,
 		Name:      req.Name,
-		StartAt:   pgtype.Timestamptz{Time: req.StartAt, Valid: true},
-		ExpiredAt: pgtype.Timestamptz{Time: req.ExpiredAt, Valid: true},
+		StartAt:   req.StartAt,
+		ExpiredAt: req.ExpiredAt,
 	})
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -289,10 +289,10 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (*CreateTopic
 }
 
 type TopicResult struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	StartAt   time.Time `json:"start_at"`
-	ExpiredAt time.Time `json:"expired_at"`
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	StartAt   int32  `json:"start_at"`
+	ExpiredAt int32  `json:"expired_at"`
 }
 
 type GetTopicsResult struct {
@@ -327,8 +327,8 @@ func (s *Service) GetTopics(ctx context.Context) (*GetTopicsResult, error) {
 		result.Topics = append(result.Topics, TopicResult{
 			ID:        row.ID.String(),
 			Name:      row.Name,
-			StartAt:   row.StartAt.Time,
-			ExpiredAt: row.ExpiredAt.Time,
+			StartAt:   row.StartAt,
+			ExpiredAt: row.ExpiredAt,
 		})
 	}
 	return result, nil
