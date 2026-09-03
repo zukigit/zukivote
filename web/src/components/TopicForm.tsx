@@ -46,8 +46,8 @@ function TopicForm({
   return (
     <div className="topic-form-page">
       <div className="topic-form-header">
-        <button className="topic-back-button" onClick={() => navigate('/topics')}>←</button>
         <h1>{title}</h1>
+        <button className="topic-back-button" onClick={() => navigate('/topics')}>←</button>
       </div>
 
       <form className="topic-form" onSubmit={handleSubmit}>
