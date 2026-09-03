@@ -4,18 +4,17 @@
 
 .topics-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
+  position: relative;
+  gap: 0.5rem;
 }
 
 .topics-header h1 {
   margin: 0;
-}
-
-.topics-actions {
-  display: flex;
-  gap: 0.5rem;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .topics-error {
@@ -59,9 +58,10 @@
   background-color: #357abd;
 }
 
-.topic-refresh {
-  padding: 0.5rem 0.6rem;
-  font-size: 1.1rem;
+.topic-icon {
+  padding: 0.5rem 1rem;
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .topics-table {

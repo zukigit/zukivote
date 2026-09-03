@@ -73,11 +73,9 @@ function Topics() {
   return (
     <div className="topics-page">
       <div className="topics-header">
+        <button className="topic-button topic-icon" onClick={() => navigate('/topics/create')} title="Add Topic">+</button>
         <h1>Topics</h1>
-        <div className="topics-actions">
-          <button className="topic-button topic-refresh" onClick={handleRefresh} title="Refresh">↻</button>
-          <button className="topic-button" onClick={() => navigate('/topics/create')}>Add Topic</button>
-        </div>
+        <button className="topic-button topic-icon" onClick={handleRefresh} title="Refresh">↻</button>
       </div>
 
       {error && <p className="topics-error">{error}</p>}
