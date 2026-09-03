@@ -27,6 +27,24 @@
   font-size: 0.9rem;
 }
 
+.topics-message {
+  background-color: #152a15;
+  color: #6bff6b;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.topics-info {
+  background-color: #1e1e1e;
+  color: #b0b0b0;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
 .topic-button {
   padding: 0.5rem 1rem;
   background-color: #4a90d9;

@@ -9,6 +9,7 @@ function Topics() {
   const [topics, setTopics] = useState<Topic[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [message, setMessage] = useState('')
 
   useEffect(() => {
     async function fetchTopics() {
@@ -37,6 +38,7 @@ function Topics() {
   }
 
   async function handleRefresh() {
+    setMessage('')
     const { data, error: apiError, status } = await getTopics()
 
     if (apiError) {
@@ -48,7 +50,15 @@ function Topics() {
       return
     }
 
-    setTopics(data?.topics ?? [])
+    const newTopics = data?.topics ?? []
+    if (JSON.stringify(newTopics) === JSON.stringify(topics)) {
+      setMessage('No updates')
+    } else {
+      setMessage('Data updated')
+    }
+    setTopics(newTopics)
+
+    setTimeout(() => setMessage(''), 2000)
   }
 
   function formatTimestamp(timestamp: number) {
@@ -75,6 +85,7 @@ function Topics() {
       </div>
 
       {error && <p className="topics-error">{error}</p>}
+      {message && <p className={message === 'No updates' ? 'topics-info' : 'topics-message'}>{message}</p>}
 
       <table className="topics-table">
         <thead>
