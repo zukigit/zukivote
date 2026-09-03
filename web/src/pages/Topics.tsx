@@ -33,10 +33,6 @@ function Topics() {
     fetchTopics()
   }, [navigate])
 
-  function handleAddTopic() {
-    // TODO: implement backend call
-  }
-
   async function handleRefresh() {
     setMessage('')
     const { data, error: apiError, status } = await getTopics()
@@ -80,7 +76,7 @@ function Topics() {
         <h1>Topics</h1>
         <div className="topics-actions">
           <button className="topic-button topic-refresh" onClick={handleRefresh} title="Refresh">↻</button>
-          <button className="topic-button" onClick={handleAddTopic}>Add Topic</button>
+          <button className="topic-button" onClick={() => navigate('/topics/create')}>Add Topic</button>
         </div>
       </div>
 

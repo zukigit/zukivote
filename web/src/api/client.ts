@@ -85,6 +85,18 @@ export interface GetTopicsResponse {
   topics: Topic[]
 }
 
+export interface CreateTopicRequest {
+  name: string
+  start_at: number
+  expired_at: number
+  voter_count: number
+}
+
+export interface CreateTopicResponse {
+  topic_id: string
+  voters: string[]
+}
+
 export function login(data: LoginRequest): Promise<ApiResponse<LoginResponse>> {
   return request<LoginResponse>('/login', {
     method: 'POST',
@@ -105,4 +117,11 @@ export function getMe(): Promise<ApiResponse<User>> {
 
 export function getTopics(): Promise<ApiResponse<GetTopicsResponse>> {
   return request<GetTopicsResponse>('/topics')
+}
+
+export function createTopic(data: CreateTopicRequest): Promise<ApiResponse<CreateTopicResponse>> {
+  return request<CreateTopicResponse>('/topics', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
 }
