@@ -14,9 +14,9 @@ http:
     data: |-
       {
         "start_at": 1700000000,
-        "expired_at": 1700086400,
+        "expired_at": 2000086400,
         "voter_count": 3,
-        "name": "my topic"
+        "name": "topic"
       }
 
 settings:

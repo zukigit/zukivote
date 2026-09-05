@@ -54,6 +54,7 @@ var (
 	ErrUnauthenticated         = &ServiceError{StatusCode: http.StatusUnauthorized, Message: "unauthenticated"}
 	ErrInvalidUser             = &ServiceError{StatusCode: http.StatusUnauthorized, Message: "invalid user"}
 	ErrPhotoNotFound           = &ServiceError{StatusCode: http.StatusNotFound, Message: "photo not found"}
+	ErrExpiredAtInvalid        = &ServiceError{StatusCode: http.StatusBadRequest, Message: "expired_at must be at least 15 minutes from now"}
 )
 
 const jwtTTL = 24 * time.Hour
@@ -236,6 +237,10 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (*CreateTopic
 
 	if ownerID == "" || req.Name == "" || req.VoterCount <= 0 {
 		return nil, ErrInvalidTopicParams
+	}
+
+	if req.ExpiredAt <= int32(time.Now().Add(15*time.Minute).Unix()) {
+		return nil, ErrExpiredAtInvalid
 	}
 
 	var owner pgtype.UUID
