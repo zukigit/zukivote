@@ -68,7 +68,15 @@ function Topics() {
   }
 
   if (loading) {
-    return <p>Loading...</p>
+    return (
+      <div className="topics-page">
+        <div className="topics-header">
+          <button className="icon" onClick={() => navigate('/topics/create')} title="Add Topic">+</button>
+          <h1>Loading...</h1>
+          <button className="icon" onClick={handleRefresh} title="Refresh">↻</button>
+        </div>
+      </div>
+    )
   }
 
   return (
