@@ -294,6 +294,7 @@ type TopicResult struct {
 	Name      string `json:"name"`
 	StartAt   int32  `json:"start_at"`
 	ExpiredAt int32  `json:"expired_at"`
+	CreatedAt int32  `json:"created_at"`
 }
 
 type GetTopicsResult struct {
@@ -330,6 +331,7 @@ func (s *Service) GetTopics(ctx context.Context) (*GetTopicsResult, error) {
 			Name:      row.Name,
 			StartAt:   row.StartAt,
 			ExpiredAt: row.ExpiredAt,
+			CreatedAt: row.CreatedAt,
 		})
 	}
 	return result, nil

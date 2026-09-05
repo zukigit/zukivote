@@ -178,7 +178,7 @@ func (q *Queries) GetTopicOwner(ctx context.Context, id pgtype.UUID) (pgtype.UUI
 }
 
 const getTopicsByOwner = `-- name: GetTopicsByOwner :many
-SELECT id, name, start_at, expired_at
+SELECT id, name, start_at, expired_at, created_at
 FROM topics
 WHERE owner_id = $1
 `
@@ -188,6 +188,7 @@ type GetTopicsByOwnerRow struct {
 	Name      string      `json:"name"`
 	StartAt   int32       `json:"start_at"`
 	ExpiredAt int32       `json:"expired_at"`
+	CreatedAt int32       `json:"created_at"`
 }
 
 func (q *Queries) GetTopicsByOwner(ctx context.Context, ownerID pgtype.UUID) ([]GetTopicsByOwnerRow, error) {
@@ -204,6 +205,7 @@ func (q *Queries) GetTopicsByOwner(ctx context.Context, ownerID pgtype.UUID) ([]
 			&i.Name,
 			&i.StartAt,
 			&i.ExpiredAt,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}

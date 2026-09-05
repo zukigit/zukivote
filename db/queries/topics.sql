@@ -9,7 +9,7 @@ VALUES ($1)
 RETURNING id;
 
 -- name: GetTopicsByOwner :many
-SELECT id, name, start_at, expired_at
+SELECT id, name, start_at, expired_at, created_at
 FROM topics
 WHERE owner_id = $1;
 
