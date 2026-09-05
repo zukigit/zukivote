@@ -55,6 +55,7 @@ var (
 	ErrInvalidUser             = &ServiceError{StatusCode: http.StatusUnauthorized, Message: "invalid user"}
 	ErrPhotoNotFound           = &ServiceError{StatusCode: http.StatusNotFound, Message: "photo not found"}
 	ErrExpiredAtInvalid        = &ServiceError{StatusCode: http.StatusBadRequest, Message: "End Time must be at least 15 minutes from now"}
+	ErrStartAtInvalid          = &ServiceError{StatusCode: http.StatusBadRequest, Message: "Start Time must be greater than now"}
 	ErrStartAfterEnd           = &ServiceError{StatusCode: http.StatusBadRequest, Message: "start_at must be before expired_at"}
 )
 
@@ -238,6 +239,10 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (*CreateTopic
 
 	if ownerID == "" || req.Name == "" || req.VoterCount <= 0 {
 		return nil, ErrInvalidTopicParams
+	}
+
+	if req.StartAt <= int32(time.Now().Unix()) {
+		return nil, ErrStartAtInvalid
 	}
 
 	if req.ExpiredAt <= int32(time.Now().Add(15*time.Minute).Unix()) {
