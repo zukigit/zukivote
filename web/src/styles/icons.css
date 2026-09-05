@@ -17,3 +17,8 @@
 .icon:hover {
   background-color: #357abd;
 }
+
+.icon:disabled {
+  background-color: #2a4a6a;
+  cursor: not-allowed;
+}

@@ -35,6 +35,7 @@ function Topics() {
   }, [navigate])
 
   async function handleRefresh() {
+    setLoading(true)
     setMessage('')
     const { data, error: apiError, status } = await getTopics()
 
@@ -44,6 +45,7 @@ function Topics() {
         clearToken()
         navigate('/login', { replace: true })
       }
+      setLoading(false)
       return
     }
 
@@ -54,6 +56,7 @@ function Topics() {
       setMessage('Data updated')
     }
     setTopics(newTopics)
+    setLoading(false)
 
     setTimeout(() => setMessage(''), 2000)
   }
@@ -73,7 +76,7 @@ function Topics() {
         <div className="topics-header">
           <button className="icon" onClick={() => navigate('/topics/create')} title="Add Topic">+</button>
           <h1>Loading...</h1>
-          <button className="icon" onClick={handleRefresh} title="Refresh">↻</button>
+          <button className="icon" onClick={handleRefresh} title="Refresh" disabled={loading}>↻</button>
         </div>
       </div>
     )
@@ -84,7 +87,7 @@ function Topics() {
       <div className="topics-header">
         <button className="icon" onClick={() => navigate('/topics/create')} title="Add Topic">+</button>
         <h1>Topics</h1>
-        <button className="icon" onClick={handleRefresh} title="Refresh">↻</button>
+        <button className="icon" onClick={handleRefresh} title="Refresh" disabled={loading}>↻</button>
       </div>
 
       {error && <p className="topics-error">{error}</p>}
