@@ -1,6 +1,6 @@
 -- name: CreateTopic :one
-INSERT INTO topics (owner_id, name, start_at, expired_at)
-VALUES ($1, $2, $3, $4)
+INSERT INTO topics (owner_id, name, start_at, expired_at, created_at)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING id;
 
 -- name: CreateVoter :one

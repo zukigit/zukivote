@@ -49,8 +49,8 @@ func (q *Queries) CreateItemValue(ctx context.Context, arg CreateItemValueParams
 }
 
 const createTopic = `-- name: CreateTopic :one
-INSERT INTO topics (owner_id, name, start_at, expired_at)
-VALUES ($1, $2, $3, $4)
+INSERT INTO topics (owner_id, name, start_at, expired_at, created_at)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING id
 `
 
@@ -59,6 +59,7 @@ type CreateTopicParams struct {
 	Name      string      `json:"name"`
 	StartAt   int32       `json:"start_at"`
 	ExpiredAt int32       `json:"expired_at"`
+	CreatedAt int32       `json:"created_at"`
 }
 
 func (q *Queries) CreateTopic(ctx context.Context, arg CreateTopicParams) (pgtype.UUID, error) {
@@ -67,6 +68,7 @@ func (q *Queries) CreateTopic(ctx context.Context, arg CreateTopicParams) (pgtyp
 		arg.Name,
 		arg.StartAt,
 		arg.ExpiredAt,
+		arg.CreatedAt,
 	)
 	var id pgtype.UUID
 	err := row.Scan(&id)

@@ -35,6 +35,7 @@ type Topic struct {
 	Name      string      `json:"name"`
 	StartAt   int32       `json:"start_at"`
 	ExpiredAt int32       `json:"expired_at"`
+	CreatedAt int32       `json:"created_at"`
 }
 
 type User struct {

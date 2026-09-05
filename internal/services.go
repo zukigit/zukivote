@@ -263,6 +263,7 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (*CreateTopic
 		Name:      req.Name,
 		StartAt:   req.StartAt,
 		ExpiredAt: req.ExpiredAt,
+		CreatedAt: int32(time.Now().Unix()),
 	})
 	if err != nil {
 		var pgErr *pgconn.PgError

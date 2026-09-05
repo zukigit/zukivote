@@ -9,7 +9,8 @@ CREATE TABLE topics (
     owner_id   UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name       VARCHAR NOT NULL UNIQUE,
     start_at   INTEGER NOT NULL,
-    expired_at INTEGER NOT NULL
+    expired_at INTEGER NOT NULL,
+    created_at INTEGER NOT NULL
 );
 
 CREATE TABLE voters (
