@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
@@ -31,6 +31,14 @@ function TopicForm({
   const [voterCount, setVoterCount] = useState(initialVoterCount)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+
+  const handleStartAtChange = useCallback((date: Date | null) => {
+    setStartAt(date)
+  }, [])
+
+  const handleExpiredAtChange = useCallback((date: Date | null) => {
+    setExpiredAt(date)
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -71,13 +79,15 @@ function TopicForm({
           <DatePicker
             id="startAt"
             selected={startAt}
-            onChange={(date: Date | null) => setStartAt(date)}
+            onChange={handleStartAtChange}
             showTimeSelect
             timeIntervals={1}
             timeFormat="HH:mm"
             dateFormat="yyyy-MM-dd HH:mm"
             placeholderText="Select start time"
             required
+            shouldCloseOnSelect={true}
+            popperPlacement="bottom-start"
           />
         </div>
         <div className="form-group">
@@ -85,13 +95,15 @@ function TopicForm({
           <DatePicker
             id="expiredAt"
             selected={expiredAt}
-            onChange={(date: Date | null) => setExpiredAt(date)}
+            onChange={handleExpiredAtChange}
             showTimeSelect
             timeIntervals={1}
             timeFormat="HH:mm"
             dateFormat="yyyy-MM-dd HH:mm"
             placeholderText="Select end time"
             required
+            shouldCloseOnSelect={true}
+            popperPlacement="bottom-start"
           />
         </div>
         <div className="form-group">
