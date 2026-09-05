@@ -98,6 +98,7 @@ function Topics() {
           <tr>
             <th>#</th>
             <th>Name</th>
+            <th>Created</th>
             <th>Start</th>
             <th>End</th>
           </tr>
@@ -107,6 +108,7 @@ function Topics() {
             <tr key={topic.id}>
               <td>{index + 1}</td>
               <td>{topic.name}</td>
+              <td>{formatTimestamp(topic.created_at)}</td>
               <td>{formatTimestamp(topic.start_at)}</td>
               <td>{formatTimestamp(topic.expired_at)}</td>
             </tr>

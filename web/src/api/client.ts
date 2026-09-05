@@ -79,6 +79,7 @@ export interface Topic {
   name: string
   start_at: number
   expired_at: number
+  created_at: number
 }
 
 export interface GetTopicsResponse {
