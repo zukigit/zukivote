@@ -15,6 +15,7 @@ erDiagram
         uuid owner_id FK
         integer start_at
         integer expired_at
+        integer created_at
     }
 
     VOTERS {
@@ -69,6 +70,7 @@ erDiagram
 | owner_id   | UUID     | FOREIGN KEY references users(id) ON DELETE CASCADE |
 | start_at   | INTEGER  | NOT NULL (unix time)       |
 | expired_at | INTEGER  | NOT NULL (unix time)       |
+| created_at | INTEGER  | NOT NULL (unix time)       |
 
 ### voters
 
