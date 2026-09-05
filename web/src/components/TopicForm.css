@@ -17,19 +17,7 @@
   transform: translateX(-50%);
 }
 
-.topic-back-button {
-  padding: 0.5rem 1rem;
-  background-color: #4a90d9;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 1.25rem;
-  cursor: pointer;
-}
 
-.topic-back-button:hover {
-  background-color: #357abd;
-}
 
 .topic-form {
   background: #1e1e1e;

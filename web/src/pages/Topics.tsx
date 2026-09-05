@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { getTopics, type Topic } from '../api/client'
 import { clearToken } from '../api/auth'
 import './Topics.css'
+import '../styles/icons.css'
 
 function Topics() {
   const navigate = useNavigate()
@@ -73,9 +74,9 @@ function Topics() {
   return (
     <div className="topics-page">
       <div className="topics-header">
-        <button className="topic-button topic-icon" onClick={() => navigate('/topics/create')} title="Add Topic">+</button>
+        <button className="icon" onClick={() => navigate('/topics/create')} title="Add Topic">+</button>
         <h1>Topics</h1>
-        <button className="topic-button topic-icon" onClick={handleRefresh} title="Refresh">↻</button>
+        <button className="icon" onClick={handleRefresh} title="Refresh">↻</button>
       </div>
 
       {error && <p className="topics-error">{error}</p>}

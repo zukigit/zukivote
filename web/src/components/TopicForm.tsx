@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './TopicForm.css'
+import '../styles/icons.css'
 
 interface TopicFormProps {
   title: string
@@ -47,7 +48,7 @@ function TopicForm({
     <div className="topic-form-page">
       <div className="topic-form-header">
         <h1>{title}</h1>
-        <button className="topic-back-button" onClick={() => navigate('/topics')}>←</button>
+        <button className="icon" onClick={() => navigate('/topics')}>←</button>
       </div>
 
       <form className="topic-form" onSubmit={handleSubmit}>

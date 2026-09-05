@@ -58,12 +58,6 @@
   background-color: #357abd;
 }
 
-.topic-icon {
-  padding: 0.5rem 1rem;
-  font-size: 1.25rem;
-  line-height: 1;
-}
-
 .topics-table {
   width: 100%;
   border-collapse: collapse;
