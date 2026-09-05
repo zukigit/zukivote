@@ -34,7 +34,7 @@ function EditTopic() {
     fetchTopic()
   }, [id, navigate])
 
-  async function handleSubmit(_data: { name: string; start_at: string; expired_at: string; voter_count: string }) {
+  async function handleSubmit(_data: { name: string; start_at: Date | null; expired_at: Date | null; voter_count: string }) {
     // TODO: implement update topic API call
     navigate('/topics')
   }
@@ -47,17 +47,16 @@ function EditTopic() {
     return <p>Topic not found</p>
   }
 
-  const toDateInput = (timestamp: number) => {
-    const date = new Date(timestamp * 1000)
-    return date.toISOString().slice(0, 16)
+  const toDate = (timestamp: number) => {
+    return new Date(timestamp * 1000)
   }
 
   return (
     <TopicForm
       title="Edit Topic"
       initialName={topic.name}
-      initialStartAt={toDateInput(topic.start_at)}
-      initialExpiredAt={toDateInput(topic.expired_at)}
+      initialStartAt={toDate(topic.start_at)}
+      initialExpiredAt={toDate(topic.expired_at)}
       onSubmit={handleSubmit}
       submitLabel="Update Topic"
     />

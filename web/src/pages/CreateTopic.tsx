@@ -6,11 +6,11 @@ import TopicForm from '../components/TopicForm'
 function CreateTopic() {
   const navigate = useNavigate()
 
-  async function handleSubmit(data: { name: string; start_at: string; expired_at: string; voter_count: string }) {
+  async function handleSubmit(data: { name: string; start_at: Date | null; expired_at: Date | null; voter_count: string }) {
     const { error, status } = await createTopic({
       name: data.name,
-      start_at: Math.floor(new Date(data.start_at).getTime() / 1000),
-      expired_at: Math.floor(new Date(data.expired_at).getTime() / 1000),
+      start_at: data.start_at ? Math.floor(data.start_at.getTime() / 1000) : 0,
+      expired_at: data.expired_at ? Math.floor(data.expired_at.getTime() / 1000) : 0,
       voter_count: parseInt(data.voter_count, 10),
     })
 

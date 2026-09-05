@@ -64,6 +64,27 @@
   box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.3);
 }
 
+.react-datepicker-wrapper {
+  width: 100%;
+}
+
+.react-datepicker-wrapper input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #333;
+  border-radius: 4px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  background-color: #2a2a2a;
+  color: #e0e0e0;
+}
+
+.react-datepicker-wrapper input:focus {
+  outline: none;
+  border-color: #4a90d9;
+  box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.3);
+}
+
 .topic-submit-button {
   width: 100%;
   padding: 0.75rem;
@@ -91,6 +112,10 @@
   }
 
   .topic-form input {
+    padding: 0.6rem;
+  }
+
+  .react-datepicker-wrapper input {
     padding: 0.6rem;
   }
 }

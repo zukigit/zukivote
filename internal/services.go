@@ -54,7 +54,7 @@ var (
 	ErrUnauthenticated         = &ServiceError{StatusCode: http.StatusUnauthorized, Message: "unauthenticated"}
 	ErrInvalidUser             = &ServiceError{StatusCode: http.StatusUnauthorized, Message: "invalid user"}
 	ErrPhotoNotFound           = &ServiceError{StatusCode: http.StatusNotFound, Message: "photo not found"}
-	ErrExpiredAtInvalid        = &ServiceError{StatusCode: http.StatusBadRequest, Message: "expired_at must be at least 15 minutes from now"}
+	ErrExpiredAtInvalid        = &ServiceError{StatusCode: http.StatusBadRequest, Message: "End Time must be at least 15 minutes from now"}
 	ErrStartAfterEnd           = &ServiceError{StatusCode: http.StatusBadRequest, Message: "start_at must be before expired_at"}
 )
 

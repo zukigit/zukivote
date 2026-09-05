@@ -1,31 +1,33 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
 import './TopicForm.css'
 import '../styles/icons.css'
 
 interface TopicFormProps {
   title: string
   initialName?: string
-  initialStartAt?: string
-  initialExpiredAt?: string
+  initialStartAt?: Date | null
+  initialExpiredAt?: Date | null
   initialVoterCount?: string
-  onSubmit: (data: { name: string; start_at: string; expired_at: string; voter_count: string }) => Promise<void>
+  onSubmit: (data: { name: string; start_at: Date | null; expired_at: Date | null; voter_count: string }) => Promise<void>
   submitLabel: string
 }
 
 function TopicForm({
   title,
   initialName = '',
-  initialStartAt = '',
-  initialExpiredAt = '',
+  initialStartAt = null,
+  initialExpiredAt = null,
   initialVoterCount = '',
   onSubmit,
   submitLabel,
 }: TopicFormProps) {
   const navigate = useNavigate()
   const [name, setName] = useState(initialName)
-  const [startAt, setStartAt] = useState(initialStartAt)
-  const [expiredAt, setExpiredAt] = useState(initialExpiredAt)
+  const [startAt, setStartAt] = useState<Date | null>(initialStartAt)
+  const [expiredAt, setExpiredAt] = useState<Date | null>(initialExpiredAt)
   const [voterCount, setVoterCount] = useState(initialVoterCount)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -65,22 +67,30 @@ function TopicForm({
           />
         </div>
         <div className="form-group">
-          <label htmlFor="startAt">Start Date</label>
-          <input
+          <label htmlFor="startAt">Start Time</label>
+          <DatePicker
             id="startAt"
-            type="datetime-local"
-            value={startAt}
-            onChange={(e) => setStartAt(e.target.value)}
+            selected={startAt}
+            onChange={(date: Date | null) => setStartAt(date)}
+            showTimeSelect
+            timeIntervals={1}
+            timeFormat="HH:mm"
+            dateFormat="yyyy-MM-dd HH:mm"
+            placeholderText="Select start time"
             required
           />
         </div>
         <div className="form-group">
-          <label htmlFor="expiredAt">End Date</label>
-          <input
+          <label htmlFor="expiredAt">End Time</label>
+          <DatePicker
             id="expiredAt"
-            type="datetime-local"
-            value={expiredAt}
-            onChange={(e) => setExpiredAt(e.target.value)}
+            selected={expiredAt}
+            onChange={(date: Date | null) => setExpiredAt(date)}
+            showTimeSelect
+            timeIntervals={1}
+            timeFormat="HH:mm"
+            dateFormat="yyyy-MM-dd HH:mm"
+            placeholderText="Select end time"
             required
           />
         </div>
