@@ -57,9 +57,10 @@ var (
 	ErrPhotoNotFound           = &ServiceError{StatusCode: http.StatusNotFound, Message: "photo not found"}
 	ErrExpiredAtInvalid        = &ServiceError{StatusCode: http.StatusBadRequest, Message: "End Time must be at least 15 minutes from now"}
 	ErrStartAtInvalid          = &ServiceError{StatusCode: http.StatusBadRequest, Message: "Start Time must be greater than now"}
-	ErrNewStartLessThanCurrent = &ServiceError{StatusCode: http.StatusBadRequest, Message: "New Start Time must not be less than current Start Time"}
 	ErrStartAfterEnd           = &ServiceError{StatusCode: http.StatusBadRequest, Message: "Start Time must be before End Time"}
 	ErrTopicAlreadyStarted     = &ServiceError{StatusCode: http.StatusBadRequest, Message: "cannot modify a topic that has already started"}
+	ErrNewStartLessThanCurrent = &ServiceError{StatusCode: http.StatusBadRequest, Message: "new start time cannot be earlier than current start time"}
+	ErrTopicActive             = &ServiceError{StatusCode: http.StatusBadRequest, Message: "cannot delete a topic that has started and not yet ended"}
 )
 
 const jwtTTL = 24 * time.Hour
@@ -447,6 +448,19 @@ func (s *Service) DeleteTopic(ctx context.Context, topicIDStr string) (*DeleteTo
 
 	if err := checkTopicOwnership(ctx, q, topicID, ownerID); err != nil {
 		return nil, err
+	}
+
+	topic, err := q.GetTopicById(ctx, topicID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrTopicNotFound
+		}
+		return nil, internalError(fmt.Sprintf("GetTopicById() failed, err: %s", err.Error()))
+	}
+
+	now := int32(time.Now().Unix())
+	if topic.StartAt <= now && now < topic.ExpiredAt {
+		return nil, ErrTopicActive
 	}
 
 	if err := q.DeleteTopic(ctx, topicID); err != nil {

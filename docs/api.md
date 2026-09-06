@@ -171,7 +171,7 @@ Authorization: Bearer <jwt>
 | Status | Body |
 | ------ | ---- |
 | 200 OK | `{ "message": "topic deleted" }` |
-| 400 Bad Request | `{ "error": "invalid topic params" }` |
+| 400 Bad Request | `{ "error": "invalid topic params" }` / `{ "error": "cannot delete a topic that has started and not yet ended" }` |
 | 401 Unauthorized | `{ "error": "invalid token" }` / `{ "error": "unauthenticated" }` |
 | 403 Forbidden | `{ "error": "forbidden" }` |
 | 404 Not Found | `{ "error": "topic not found" }` |
@@ -181,6 +181,7 @@ Authorization: Bearer <jwt>
 
 - Only the owner of the topic can delete it.
 - Deleting a topic also deletes all associated voters, items, item_values, and records (cascade delete).
+- Cannot delete a topic that has started and not yet ended.
 
 ---
 
