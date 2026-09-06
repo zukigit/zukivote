@@ -13,6 +13,7 @@ erDiagram
     TOPICS {
         uuid id PK
         uuid owner_id FK
+        varchar name
         integer start_at
         integer expired_at
         integer created_at
@@ -67,7 +68,8 @@ erDiagram
 | Column     | Type     | Constraints                |
 | ---------- | -------- | -------------------------- |
 | id         | UUID     | PRIMARY KEY                |
-| owner_id   | UUID     | FOREIGN KEY references users(id) ON DELETE CASCADE |
+| owner_id   | UUID     | NOT NULL, FOREIGN KEY references users(id) ON DELETE CASCADE |
+| name       | VARCHAR  | NOT NULL, UNIQUE           |
 | start_at   | INTEGER  | NOT NULL (unix time)       |
 | expired_at | INTEGER  | NOT NULL (unix time)       |
 | created_at | INTEGER  | NOT NULL (unix time)       |
@@ -77,14 +79,14 @@ erDiagram
 | Column   | Type     | Constraints                |
 | -------- | -------- | -------------------------- |
 | id       | UUID     | PRIMARY KEY                |
-| topic_id | UUID     | FOREIGN KEY references topics(id) ON DELETE CASCADE |
+| topic_id | UUID     | NOT NULL, FOREIGN KEY references topics(id) ON DELETE CASCADE |
 
 ### items
 
 | Column      | Type     | Constraints                |
 | ----------- | -------- | -------------------------- |
 | id          | INTEGER  | PRIMARY KEY, AUTO INCREMENT |
-| topic_id    | UUID     | FOREIGN KEY references topics(id) ON DELETE CASCADE |
+| topic_id    | UUID     | NOT NULL, FOREIGN KEY references topics(id) ON DELETE CASCADE |
 | description | VARCHAR  | NOT NULL                   |
 | photo_url   | VARCHAR  |                            |
 
@@ -95,7 +97,7 @@ erDiagram
 | Column  | Type     | Constraints                |
 | ------- | -------- | -------------------------- |
 | id      | INTEGER  | PRIMARY KEY, AUTO INCREMENT |
-| item_id | INTEGER  | FOREIGN KEY references items(id) ON DELETE CASCADE |
+| item_id | INTEGER  | NOT NULL, FOREIGN KEY references items(id) ON DELETE CASCADE |
 | key     | VARCHAR  | NOT NULL                   |
 | value   | VARCHAR  | NOT NULL                   |
 
@@ -103,11 +105,11 @@ erDiagram
 
 ### records
 
-| Column   | Type     | Constraints                |
-| -------- | -------- | -------------------------- |
-| id       | INTEGER  | PRIMARY KEY, AUTO INCREMENT |
-| voter_id | UUID     | FOREIGN KEY references voters(id) ON DELETE CASCADE |
-| item_id  | INTEGER  | FOREIGN KEY references items(id) ON DELETE CASCADE |
-| created_at | INTEGER | NOT NULL (unix time)           |
+| Column     | Type     | Constraints                |
+| ---------- | -------- | -------------------------- |
+| id         | INTEGER  | PRIMARY KEY, AUTO INCREMENT |
+| voter_id   | UUID     | NOT NULL, FOREIGN KEY references voters(id) ON DELETE CASCADE |
+| item_id    | INTEGER  | NOT NULL, FOREIGN KEY references items(id) ON DELETE CASCADE |
+| created_at | INTEGER  | NOT NULL (unix time)       |
 
 > UNIQUE constraint on `(voter_id, item_id)` prevents a voter from voting on the same item more than once.
