@@ -11,6 +11,7 @@ interface TopicFormProps {
   initialStartAt?: Date | null
   initialExpiredAt?: Date | null
   initialVoterCount?: string
+  disableVoterCount?: boolean
   onSubmit: (data: { name: string; start_at: Date | null; expired_at: Date | null; voter_count: string }) => Promise<void>
   submitLabel: string
 }
@@ -21,6 +22,7 @@ function TopicForm({
   initialStartAt = null,
   initialExpiredAt = null,
   initialVoterCount = '',
+  disableVoterCount = false,
   onSubmit,
   submitLabel,
 }: TopicFormProps) {
@@ -116,6 +118,7 @@ function TopicForm({
             onChange={(e) => setVoterCount(e.target.value)}
             placeholder="3"
             required
+            disabled={disableVoterCount}
           />
         </div>
         <button type="submit" className="topic-submit-button" disabled={submitting}>

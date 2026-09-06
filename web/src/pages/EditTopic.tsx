@@ -66,6 +66,7 @@ function EditTopic() {
       initialStartAt={toDate(topic.start_at)}
       initialExpiredAt={toDate(topic.expired_at)}
       initialVoterCount={topic.voter_count.toString()}
+      disableVoterCount={true}
       onSubmit={handleSubmit}
       submitLabel="Update Topic"
     />
