@@ -1,0 +1,25 @@
+info:
+  name: put_topics
+  type: http
+  seq: 8
+
+http:
+  method: PUT
+  url: 127.0.0.1:8080/topics/{{TOPIC_ID}}
+  headers:
+    - name: Authorization
+      value: Bearer {{LOGIN_TOKEN}}
+  body:
+    type: json
+    data: |-
+      {
+        "start_at": 2000000000,
+        "expired_at": 2000086400,
+        "name": "topic1"
+      }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

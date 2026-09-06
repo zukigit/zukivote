@@ -57,6 +57,7 @@ var (
 	ErrPhotoNotFound           = &ServiceError{StatusCode: http.StatusNotFound, Message: "photo not found"}
 	ErrExpiredAtInvalid        = &ServiceError{StatusCode: http.StatusBadRequest, Message: "End Time must be at least 15 minutes from now"}
 	ErrStartAtInvalid          = &ServiceError{StatusCode: http.StatusBadRequest, Message: "Start Time must be greater than now"}
+	ErrNewStartLessThanCurrent = &ServiceError{StatusCode: http.StatusBadRequest, Message: "New Start Time must not be less than current Start Time"}
 	ErrStartAfterEnd           = &ServiceError{StatusCode: http.StatusBadRequest, Message: "Start Time must be before End Time"}
 	ErrTopicAlreadyStarted     = &ServiceError{StatusCode: http.StatusBadRequest, Message: "cannot modify a topic that has already started"}
 )
@@ -346,8 +347,8 @@ func (s *Service) EditTopic(ctx context.Context, topicIDStr string, body io.Read
 		return nil, ErrInvalidJSON
 	}
 
-	if err := validateTopicRequest(req.Name, req.StartAt, req.ExpiredAt); err != nil {
-		return nil, err
+	if req.StartAt >= req.ExpiredAt {
+		return nil, ErrStartAfterEnd
 	}
 
 	tx, err := s.pool.Begin(ctx)
@@ -381,6 +382,10 @@ func (s *Service) EditTopic(ctx context.Context, topicIDStr string, body io.Read
 
 	if currentTopic.StartAt <= int32(time.Now().Unix()) {
 		return nil, ErrTopicAlreadyStarted
+	}
+
+	if currentTopic.StartAt > req.StartAt {
+		return nil, ErrNewStartLessThanCurrent
 	}
 
 	if err := q.UpdateTopic(ctx, sqlc.UpdateTopicParams{
