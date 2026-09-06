@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getTopics, type Topic } from '../api/client'
 import { clearToken } from '../api/auth'
@@ -11,6 +11,8 @@ function Topics() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     async function fetchTopics() {
@@ -33,6 +35,20 @@ function Topics() {
 
     fetchTopics()
   }, [navigate])
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpenMenuId(null)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  function toggleMenu(topicId: string) {
+    setOpenMenuId(openMenuId === topicId ? null : topicId)
+  }
 
   async function handleRefresh() {
     setLoading(true)
@@ -96,7 +112,7 @@ function Topics() {
       <table className="topics-table">
         <thead>
           <tr>
-            <th className="col-edit"></th>
+            <th className="col-menu"></th>
             <th>#</th>
             <th className="col-name">Name</th>
             <th>Voters</th>
@@ -108,8 +124,29 @@ function Topics() {
         <tbody>
           {topics.map((topic, index) => (
             <tr key={topic.id}>
-              <td className="col-edit">
-                <button className="edit-button" onClick={() => navigate(`/topics/edit/${topic.id}`)} title="Edit Topic">edit</button>
+              <td className="col-menu">
+                <div className="menu-container" ref={openMenuId === topic.id ? menuRef : null}>
+                  <button
+                    className="menu-button"
+                    onClick={() => toggleMenu(topic.id)}
+                    title="Menu"
+                  >
+                    ⋮
+                  </button>
+                  {openMenuId === topic.id && (
+                    <div className="menu-dropdown">
+                      <button
+                        className="menu-item"
+                        onClick={() => {
+                          navigate(`/topics/edit/${topic.id}`)
+                          setOpenMenuId(null)
+                        }}
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  )}
+                </div>
               </td>
               <td>{index + 1}</td>
               <td className="col-name">{topic.name}</td>
