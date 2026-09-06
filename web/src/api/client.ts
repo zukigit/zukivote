@@ -109,6 +109,10 @@ export interface UpdateTopicResponse {
   message: string
 }
 
+export interface DeleteTopicResponse {
+  message: string
+}
+
 export function login(data: LoginRequest): Promise<ApiResponse<LoginResponse>> {
   return request<LoginResponse>('/login', {
     method: 'POST',
@@ -142,5 +146,11 @@ export function updateTopic(id: string, data: UpdateTopicRequest): Promise<ApiRe
   return request<UpdateTopicResponse>(`/topics/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
+  })
+}
+
+export function deleteTopic(id: string): Promise<ApiResponse<DeleteTopicResponse>> {
+  return request<DeleteTopicResponse>(`/topics/${id}`, {
+    method: 'DELETE',
   })
 }

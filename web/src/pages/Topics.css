@@ -108,6 +108,15 @@
   color: white;
 }
 
+.menu-item-delete {
+  color: #ff6b6b;
+}
+
+.menu-item-delete:hover {
+  background-color: #5a1a1a;
+  color: #ff6b6b;
+}
+
 .topics-table {
   width: 100%;
   border-collapse: collapse;

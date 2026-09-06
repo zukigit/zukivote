@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getTopics, type Topic } from '../api/client'
+import { getTopics, deleteTopic, type Topic } from '../api/client'
 import { clearToken } from '../api/auth'
 import './Topics.css'
 import '../styles/icons.css'
@@ -48,6 +48,28 @@ function Topics() {
 
   function toggleMenu(topicId: string) {
     setOpenMenuId(openMenuId === topicId ? null : topicId)
+  }
+
+  async function handleDelete(topicId: string, topicName: string) {
+    if (!window.confirm(`Are you sure you want to delete "${topicName}"?`)) {
+      return
+    }
+
+    const { error, status } = await deleteTopic(topicId)
+
+    if (error) {
+      if (status === 401) {
+        clearToken()
+        navigate('/login', { replace: true })
+        return
+      }
+      setError(error)
+      return
+    }
+
+    setTopics(topics.filter((t) => t.id !== topicId))
+    setMessage('Topic deleted')
+    setTimeout(() => setMessage(''), 2000)
   }
 
   async function handleRefresh() {
@@ -143,6 +165,15 @@ function Topics() {
                         }}
                       >
                         Edit
+                      </button>
+                      <button
+                        className="menu-item menu-item-delete"
+                        onClick={() => {
+                          handleDelete(topic.id, topic.name)
+                          setOpenMenuId(null)
+                        }}
+                      >
+                        Delete
                       </button>
                     </div>
                   )}
