@@ -99,6 +99,16 @@ export interface CreateTopicResponse {
   voters: string[]
 }
 
+export interface UpdateTopicRequest {
+  name: string
+  start_at: number
+  expired_at: number
+}
+
+export interface UpdateTopicResponse {
+  message: string
+}
+
 export function login(data: LoginRequest): Promise<ApiResponse<LoginResponse>> {
   return request<LoginResponse>('/login', {
     method: 'POST',
@@ -124,6 +134,13 @@ export function getTopics(): Promise<ApiResponse<GetTopicsResponse>> {
 export function createTopic(data: CreateTopicRequest): Promise<ApiResponse<CreateTopicResponse>> {
   return request<CreateTopicResponse>('/topics', {
     method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function updateTopic(id: string, data: UpdateTopicRequest): Promise<ApiResponse<UpdateTopicResponse>> {
+  return request<UpdateTopicResponse>(`/topics/${id}`, {
+    method: 'PUT',
     body: JSON.stringify(data),
   })
 }

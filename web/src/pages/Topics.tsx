@@ -115,7 +115,7 @@ function Topics() {
             <th className="col-menu"></th>
             <th>#</th>
             <th className="col-name">Name</th>
-            <th>Voters</th>
+            <th>Voter Count</th>
             <th>Start Time</th>
             <th>End Time</th>
             <th>Created Time</th>

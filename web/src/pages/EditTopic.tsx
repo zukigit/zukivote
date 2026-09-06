@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getTopics, type Topic } from '../api/client'
+import { getTopics, updateTopic, type Topic } from '../api/client'
 import { clearToken } from '../api/auth'
 import TopicForm from '../components/TopicForm'
 import '../styles/icons.css'
@@ -10,6 +10,7 @@ function EditTopic() {
   const { id } = useParams<{ id: string }>()
   const [topic, setTopic] = useState<Topic | null>(null)
   const [loading, setLoading] = useState(true)
+  const [successMessage, setSuccessMessage] = useState('')
 
   useEffect(() => {
     async function fetchTopic() {
@@ -35,9 +36,27 @@ function EditTopic() {
     fetchTopic()
   }, [id, navigate])
 
-  async function handleSubmit(_data: { name: string; start_at: Date | null; expired_at: Date | null; voter_count: string }) {
-    // TODO: implement update topic API call
-    navigate('/topics')
+  async function handleSubmit(data: { name: string; start_at: Date | null; expired_at: Date | null; voter_count: string }) {
+    if (!id || !data.start_at || !data.expired_at) {
+      throw new Error('Invalid data')
+    }
+
+    const { data: result, error, status } = await updateTopic(id, {
+      name: data.name,
+      start_at: Math.floor(data.start_at.getTime() / 1000),
+      expired_at: Math.floor(data.expired_at.getTime() / 1000),
+    })
+
+    if (error) {
+      if (status === 401) {
+        clearToken()
+        navigate('/login', { replace: true })
+        return
+      }
+      throw new Error(error)
+    }
+
+    setSuccessMessage(result?.message ?? 'Topic updated successfully')
   }
 
   if (loading) {
@@ -60,16 +79,19 @@ function EditTopic() {
   }
 
   return (
-    <TopicForm
-      title="Edit Topic"
-      initialName={topic.name}
-      initialStartAt={toDate(topic.start_at)}
-      initialExpiredAt={toDate(topic.expired_at)}
-      initialVoterCount={topic.voter_count.toString()}
-      disableVoterCount={true}
-      onSubmit={handleSubmit}
-      submitLabel="Update Topic"
-    />
+    <>
+      {successMessage && <p className="topic-success">{successMessage}</p>}
+      <TopicForm
+        title="Edit Topic"
+        initialName={topic.name}
+        initialStartAt={toDate(topic.start_at)}
+        initialExpiredAt={toDate(topic.expired_at)}
+        initialVoterCount={topic.voter_count.toString()}
+        disableVoterCount={true}
+        onSubmit={handleSubmit}
+        submitLabel="Update Topic"
+      />
+    </>
   )
 }
 
