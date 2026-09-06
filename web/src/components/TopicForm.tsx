@@ -12,6 +12,7 @@ interface TopicFormProps {
   initialExpiredAt?: Date | null
   initialVoterCount?: string
   disableVoterCount?: boolean
+  clearOnSuccess?: boolean
   successMessage?: string
   onSubmit: (data: { name: string; start_at: Date | null; expired_at: Date | null; voter_count: string }) => Promise<void>
   submitLabel: string
@@ -24,6 +25,7 @@ function TopicForm({
   initialExpiredAt = null,
   initialVoterCount = '',
   disableVoterCount = false,
+  clearOnSuccess = false,
   successMessage = '',
   onSubmit,
   submitLabel,
@@ -51,6 +53,12 @@ function TopicForm({
 
     try {
       await onSubmit({ name, start_at: startAt, expired_at: expiredAt, voter_count: voterCount })
+      if (clearOnSuccess) {
+        setName('')
+        setStartAt(null)
+        setExpiredAt(null)
+        setVoterCount('')
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
