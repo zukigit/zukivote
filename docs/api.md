@@ -115,6 +115,47 @@ Authorization: Bearer <jwt>
 
 ---
 
+### PUT /topics/{id}
+
+Update an existing topic. Requires authentication.
+
+**Headers**
+
+```
+Authorization: Bearer <jwt>
+```
+
+**Request body**
+
+```json
+{
+  "name": "my-topic",
+  "start_at": 1700000000,
+  "expired_at": 1700086400
+}
+```
+
+**Responses**
+
+| Status | Body |
+| ------ | ---- |
+| 200 OK | `{ "message": "topic updated" }` |
+| 400 Bad Request | `{ "error": "invalid request body" }` / `{ "error": "invalid topic params" }` / `{ "error": "Start Time must be greater than now" }` / `{ "error": "End Time must be at least 15 minutes from now" }` / `{ "error": "Start Time must be before End Time" }` / `{ "error": "cannot modify a topic that has already started" }` |
+| 401 Unauthorized | `{ "error": "invalid token" }` / `{ "error": "unauthenticated" }` |
+| 403 Forbidden | `{ "error": "forbidden" }` |
+| 404 Not Found | `{ "error": "topic not found" }` |
+| 409 Conflict | `{ "error": "topic name is already taken" }` |
+| 500 Internal Server Error | `{ "error": "internal error" }` |
+
+**Notes**
+
+- `start_at` and `expired_at` are unix timestamps.
+- Only the owner of the topic can update it.
+- Cannot update a topic that has already started.
+- `voter_count` cannot be changed after creation.
+
+---
+
 ### POST /items
 
 Add an item to an existing topic. Requires authentication.

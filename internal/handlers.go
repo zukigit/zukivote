@@ -34,6 +34,7 @@ func (h *Handler) Register(r *mux.Router) {
 	protected.Use(h.authMiddleware)
 	protected.HandleFunc("", h.CreateTopic).Methods(http.MethodPost, http.MethodOptions)
 	protected.HandleFunc("", h.GetTopics).Methods(http.MethodGet, http.MethodOptions)
+	protected.HandleFunc("/{id}", h.EditTopic).Methods(http.MethodPut, http.MethodOptions)
 
 	r.HandleFunc("/photo", h.GetItemPhoto).Methods(http.MethodGet, http.MethodOptions)
 
@@ -117,7 +118,7 @@ func (h *Handler) corsMiddleware(next http.Handler) http.Handler {
 			origin = "*"
 		}
 		w.Header().Set("Access-Control-Allow-Origin", origin)
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
 		if r.Method == http.MethodOptions {
@@ -137,6 +138,19 @@ func (h *Handler) CreateTopic(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusCreated, result)
+}
+
+func (h *Handler) EditTopic(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	topicID := vars["id"]
+
+	result, err := h.users.EditTopic(r.Context(), topicID, r.Body)
+	if err != nil {
+		writeServiceError(w, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, result)
 }
 
 func (h *Handler) CreateItem(w http.ResponseWriter, r *http.Request) {
