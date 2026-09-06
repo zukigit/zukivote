@@ -33,6 +33,10 @@ UPDATE topics
 SET name = $2, start_at = $3, expired_at = $4
 WHERE id = $1;
 
+-- name: DeleteTopic :exec
+DELETE FROM topics
+WHERE id = $1;
+
 -- name: CreateItem :one
 INSERT INTO items (topic_id, description)
 VALUES ($1, $2)

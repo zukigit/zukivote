@@ -156,6 +156,34 @@ Authorization: Bearer <jwt>
 
 ---
 
+### DELETE /topics/{id}
+
+Delete an existing topic. Requires authentication.
+
+**Headers**
+
+```
+Authorization: Bearer <jwt>
+```
+
+**Responses**
+
+| Status | Body |
+| ------ | ---- |
+| 200 OK | `{ "message": "topic deleted" }` |
+| 400 Bad Request | `{ "error": "invalid topic params" }` |
+| 401 Unauthorized | `{ "error": "invalid token" }` / `{ "error": "unauthenticated" }` |
+| 403 Forbidden | `{ "error": "forbidden" }` |
+| 404 Not Found | `{ "error": "topic not found" }` |
+| 500 Internal Server Error | `{ "error": "internal error" }` |
+
+**Notes**
+
+- Only the owner of the topic can delete it.
+- Deleting a topic also deletes all associated voters, items, item_values, and records (cascade delete).
+
+---
+
 ### POST /items
 
 Add an item to an existing topic. Requires authentication.

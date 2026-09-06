@@ -78,6 +78,22 @@ func userIDFromContext(ctx context.Context) (string, bool) {
 	return id, ok
 }
 
+func checkTopicOwnership(ctx context.Context, q *sqlc.Queries, topicID pgtype.UUID, userID string) error {
+	currentOwner, err := q.GetTopicOwner(ctx, topicID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrTopicNotFound
+		}
+		return internalError(err.Error())
+	}
+
+	if currentOwner.String() != userID {
+		return ErrForbidden
+	}
+
+	return nil
+}
+
 type CustomClaims struct {
 	ID string `json:"id"`
 	jwt.RegisteredClaims
@@ -359,16 +375,8 @@ func (s *Service) EditTopic(ctx context.Context, topicIDStr string, body io.Read
 
 	q := sqlc.New(tx)
 
-	currentOwner, err := q.GetTopicOwner(ctx, topicID)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, ErrTopicOwnerNotFound
-		}
-		return nil, internalError(err.Error())
-	}
-
-	if currentOwner.String() != ownerID {
-		return nil, ErrForbidden
+	if err := checkTopicOwnership(ctx, q, topicID, ownerID); err != nil {
+		return nil, err
 	}
 
 	// Check if topic has already started
@@ -409,6 +417,47 @@ func (s *Service) EditTopic(ctx context.Context, topicIDStr string, body io.Read
 	}
 
 	result.Message = "topic updated"
+	return &result, nil
+}
+
+type DeleteTopicResult struct {
+	Message string `json:"message"`
+}
+
+func (s *Service) DeleteTopic(ctx context.Context, topicIDStr string) (*DeleteTopicResult, error) {
+	var result DeleteTopicResult
+
+	ownerID, ok := userIDFromContext(ctx)
+	if !ok {
+		return nil, ErrUnauthenticated
+	}
+
+	var topicID pgtype.UUID
+	if err := topicID.Scan(topicIDStr); err != nil {
+		return nil, ErrInvalidTopicParams
+	}
+
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return nil, internalError(err.Error())
+	}
+	defer tx.Rollback(ctx)
+
+	q := sqlc.New(tx)
+
+	if err := checkTopicOwnership(ctx, q, topicID, ownerID); err != nil {
+		return nil, err
+	}
+
+	if err := q.DeleteTopic(ctx, topicID); err != nil {
+		return nil, internalError(fmt.Sprintf("DeleteTopic() failed, %s", err.Error()))
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, internalError(err.Error())
+	}
+
+	result.Message = "topic deleted"
 	return &result, nil
 }
 
@@ -499,18 +548,12 @@ func (s *Service) GetItems(ctx context.Context, topicIDStr string) (*GetItemsRes
 		return nil, ErrInvalidItemParams
 	}
 
-	ownerID, err := sqlc.New(s.pool).GetTopicOwner(ctx, topicID)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, ErrTopicNotFound
-		}
-		return nil, internalError(fmt.Sprintf("GetTopicOwner() failed, err: %s", err.Error()))
-	}
-	if ownerID.String() != userID {
-		return nil, ErrForbidden
+	q := sqlc.New(s.pool)
+	if err := checkTopicOwnership(ctx, q, topicID, userID); err != nil {
+		return nil, err
 	}
 
-	rows, err := sqlc.New(s.pool).GetItemsByTopic(ctx, topicID)
+	rows, err := q.GetItemsByTopic(ctx, topicID)
 	if err != nil {
 		return nil, internalError(fmt.Sprintf("GetItemsByTopic() failed, err: %s", err.Error()))
 	}
@@ -661,15 +704,8 @@ func (s *Service) CreateItem(ctx context.Context, r *http.Request) (*CreateItemR
 
 	q := sqlc.New(tx)
 
-	ownerID, err := q.GetTopicOwner(ctx, topicID)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, ErrTopicNotFound
-		}
-		return nil, internalError(err.Error())
-	}
-	if ownerID.String() != userID {
-		return nil, ErrForbidden
+	if err := checkTopicOwnership(ctx, q, topicID, userID); err != nil {
+		return nil, err
 	}
 
 	itemID, err := q.CreateItem(ctx, sqlc.CreateItemParams{

@@ -101,6 +101,16 @@ func (q *Queries) CreateVoter(ctx context.Context, topicID pgtype.UUID) (pgtype.
 	return id, err
 }
 
+const deleteTopic = `-- name: DeleteTopic :exec
+DELETE FROM topics
+WHERE id = $1
+`
+
+func (q *Queries) DeleteTopic(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteTopic, id)
+	return err
+}
+
 const getItemPhotoUrl = `-- name: GetItemPhotoUrl :one
 SELECT photo_url
 FROM items
