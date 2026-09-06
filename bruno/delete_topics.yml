@@ -1,0 +1,17 @@
+info:
+  name: delete_topics
+  type: http
+  seq: 9
+
+http:
+  method: DELETE
+  url: 127.0.0.1:8080/topics/{{TOPIC_ID}}
+  headers:
+    - name: Authorization
+      value: Bearer {{LOGIN_TOKEN}}
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
