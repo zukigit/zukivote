@@ -41,6 +41,8 @@ function EditTopic() {
       throw new Error('Invalid data')
     }
 
+    setSuccessMessage('')
+
     const { data: result, error, status } = await updateTopic(id, {
       name: data.name,
       start_at: Math.floor(data.start_at.getTime() / 1000),
@@ -79,19 +81,17 @@ function EditTopic() {
   }
 
   return (
-    <>
-      {successMessage && <p className="topic-success">{successMessage}</p>}
-      <TopicForm
-        title="Edit Topic"
-        initialName={topic.name}
-        initialStartAt={toDate(topic.start_at)}
-        initialExpiredAt={toDate(topic.expired_at)}
-        initialVoterCount={topic.voter_count.toString()}
-        disableVoterCount={true}
-        onSubmit={handleSubmit}
-        submitLabel="Update Topic"
-      />
-    </>
+    <TopicForm
+      title="Edit Topic"
+      initialName={topic.name}
+      initialStartAt={toDate(topic.start_at)}
+      initialExpiredAt={toDate(topic.expired_at)}
+      initialVoterCount={topic.voter_count.toString()}
+      disableVoterCount={true}
+      successMessage={successMessage}
+      onSubmit={handleSubmit}
+      submitLabel="Update Topic"
+    />
   )
 }
 

@@ -12,6 +12,7 @@ interface TopicFormProps {
   initialExpiredAt?: Date | null
   initialVoterCount?: string
   disableVoterCount?: boolean
+  successMessage?: string
   onSubmit: (data: { name: string; start_at: Date | null; expired_at: Date | null; voter_count: string }) => Promise<void>
   submitLabel: string
 }
@@ -23,6 +24,7 @@ function TopicForm({
   initialExpiredAt = null,
   initialVoterCount = '',
   disableVoterCount = false,
+  successMessage = '',
   onSubmit,
   submitLabel,
 }: TopicFormProps) {
@@ -65,6 +67,7 @@ function TopicForm({
 
       <form className="topic-form" onSubmit={handleSubmit}>
         {error && <p className="topic-form-error">{error}</p>}
+        {successMessage && <p className="topic-success">{successMessage}</p>}
         <div className="form-group">
           <label htmlFor="name">Name</label>
           <input
