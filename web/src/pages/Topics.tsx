@@ -96,7 +96,7 @@ function Topics() {
       <table className="topics-table">
         <thead>
           <tr>
-            <th></th>
+            <th className="col-edit"></th>
             <th>#</th>
             <th className="col-name">Name</th>
             <th>Start</th>
@@ -107,7 +107,7 @@ function Topics() {
         <tbody>
           {topics.map((topic, index) => (
             <tr key={topic.id}>
-              <td>
+              <td className="col-edit">
                 <button className="edit-button" onClick={() => navigate(`/topics/edit/${topic.id}`)} title="Edit Topic">edit</button>
               </td>
               <td>{index + 1}</td>

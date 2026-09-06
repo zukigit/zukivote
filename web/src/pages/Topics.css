@@ -97,6 +97,13 @@
   min-width: 200px;
 }
 
+.col-edit {
+  width: 0.1%;
+  white-space: nowrap;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
 .topics-table tbody tr:hover {
   background: #2a2a2a;
 }
