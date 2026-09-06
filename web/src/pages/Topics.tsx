@@ -96,21 +96,25 @@ function Topics() {
       <table className="topics-table">
         <thead>
           <tr>
+            <th></th>
             <th>#</th>
-            <th>Name</th>
-            <th>Created</th>
+            <th className="col-name">Name</th>
             <th>Start</th>
             <th>End</th>
+            <th>Created</th>
           </tr>
         </thead>
         <tbody>
           {topics.map((topic, index) => (
             <tr key={topic.id}>
+              <td>
+                <button className="edit-button" onClick={() => navigate(`/topics/edit/${topic.id}`)} title="Edit Topic">edit</button>
+              </td>
               <td>{index + 1}</td>
-              <td>{topic.name}</td>
-              <td>{formatTimestamp(topic.created_at)}</td>
+              <td className="col-name">{topic.name}</td>
               <td>{formatTimestamp(topic.start_at)}</td>
               <td>{formatTimestamp(topic.expired_at)}</td>
+              <td>{formatTimestamp(topic.created_at)}</td>
             </tr>
           ))}
         </tbody>

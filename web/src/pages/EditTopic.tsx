@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { getTopics, type Topic } from '../api/client'
 import { clearToken } from '../api/auth'
 import TopicForm from '../components/TopicForm'
+import '../styles/icons.css'
 
 function EditTopic() {
   const navigate = useNavigate()
@@ -40,7 +41,14 @@ function EditTopic() {
   }
 
   if (loading) {
-    return <p>Loading...</p>
+    return (
+      <div className="topic-form-page">
+        <div className="topic-form-header">
+          <h1>Loading...</h1>
+          <button className="icon" onClick={() => navigate('/topics')}>←</button>
+        </div>
+      </div>
+    )
   }
 
   if (!topic) {

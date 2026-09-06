@@ -1,5 +1,5 @@
 .topics-page {
-  max-width: 1000px;
+  max-width: 1200px;
 }
 
 .topics-header {
@@ -58,6 +58,20 @@
   background-color: #357abd;
 }
 
+.edit-button {
+  padding: 0.4rem 0.8rem;
+  background-color: #4a90d9;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.edit-button:hover {
+  background-color: #357abd;
+}
+
 .topics-table {
   width: 100%;
   border-collapse: collapse;
@@ -68,7 +82,7 @@
 
 .topics-table th,
 .topics-table td {
-  padding: 0.75rem 1.25rem;
+  padding: 0.75rem 1.5rem;
   text-align: left;
   border-bottom: 1px solid #2a2a2a;
 }
@@ -77,6 +91,10 @@
   background: #1a1a1a;
   color: #b0b0b0;
   font-weight: 500;
+}
+
+.col-name {
+  min-width: 200px;
 }
 
 .topics-table tbody tr:hover {
