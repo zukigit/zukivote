@@ -63,10 +63,12 @@ function Topics() {
         navigate('/login', { replace: true })
         return
       }
+      setMessage('')
       setError(error)
       return
     }
 
+    setError('')
     setTopics(topics.filter((t) => t.id !== topicId))
     setMessage('Topic deleted')
     setTimeout(() => setMessage(''), 2000)
@@ -74,6 +76,7 @@ function Topics() {
 
   async function handleRefresh() {
     setLoading(true)
+    setError('')
     setMessage('')
     const { data, error: apiError, status } = await getTopics()
 
