@@ -23,6 +23,16 @@ SELECT owner_id
 FROM topics
 WHERE id = $1;
 
+-- name: GetTopicById :one
+SELECT id, name, start_at, expired_at, created_at
+FROM topics
+WHERE id = $1;
+
+-- name: UpdateTopic :exec
+UPDATE topics
+SET name = $2, start_at = $3, expired_at = $4
+WHERE id = $1;
+
 -- name: CreateItem :one
 INSERT INTO items (topic_id, description)
 VALUES ($1, $2)

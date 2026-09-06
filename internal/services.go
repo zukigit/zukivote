@@ -45,6 +45,7 @@ var (
 	ErrInvalidItemParams       = &ServiceError{StatusCode: http.StatusBadRequest, Message: "invalid item params"}
 	ErrEmptyItemValue          = &ServiceError{StatusCode: http.StatusBadRequest, Message: "item value key and value are required"}
 	ErrTopicNotFound           = &ServiceError{StatusCode: http.StatusNotFound, Message: "topic not found"}
+	ErrTopicOwnerNotFound      = &ServiceError{StatusCode: http.StatusNotFound, Message: "topic owner not found"}
 	ErrForbidden               = &ServiceError{StatusCode: http.StatusForbidden, Message: "forbidden"}
 	ErrInvalidForm             = &ServiceError{StatusCode: http.StatusBadRequest, Message: "invalid form data"}
 	ErrPhotoTooLarge           = &ServiceError{StatusCode: http.StatusBadRequest, Message: "photo too large"}
@@ -57,6 +58,7 @@ var (
 	ErrExpiredAtInvalid        = &ServiceError{StatusCode: http.StatusBadRequest, Message: "End Time must be at least 15 minutes from now"}
 	ErrStartAtInvalid          = &ServiceError{StatusCode: http.StatusBadRequest, Message: "Start Time must be greater than now"}
 	ErrStartAfterEnd           = &ServiceError{StatusCode: http.StatusBadRequest, Message: "Start Time must be before End Time"}
+	ErrTopicAlreadyStarted     = &ServiceError{StatusCode: http.StatusBadRequest, Message: "cannot modify a topic that has already started"}
 )
 
 const jwtTTL = 24 * time.Hour
@@ -219,6 +221,32 @@ type CreateTopicRequest struct {
 	VoterCount int32  `json:"voter_count"`
 }
 
+type EditTopicRequest struct {
+	Name      string `json:"name"`
+	StartAt   int32  `json:"start_at"`
+	ExpiredAt int32  `json:"expired_at"`
+}
+
+func validateTopicRequest(name string, startAt, expiredAt int32) error {
+	if name == "" {
+		return ErrInvalidTopicParams
+	}
+
+	if startAt <= int32(time.Now().Unix()) {
+		return ErrStartAtInvalid
+	}
+
+	if expiredAt <= int32(time.Now().Add(15*time.Minute).Unix()) {
+		return ErrExpiredAtInvalid
+	}
+
+	if startAt >= expiredAt {
+		return ErrStartAfterEnd
+	}
+
+	return nil
+}
+
 type CreateTopicResult struct {
 	TopicID string   `json:"topic_id"`
 	Voters  []string `json:"voters"`
@@ -237,20 +265,12 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (*CreateTopic
 		return nil, ErrInvalidJSON
 	}
 
-	if ownerID == "" || req.Name == "" || req.VoterCount <= 0 {
+	if ownerID == "" || req.VoterCount <= 0 {
 		return nil, ErrInvalidTopicParams
 	}
 
-	if req.StartAt <= int32(time.Now().Unix()) {
-		return nil, ErrStartAtInvalid
-	}
-
-	if req.ExpiredAt <= int32(time.Now().Add(15*time.Minute).Unix()) {
-		return nil, ErrExpiredAtInvalid
-	}
-
-	if req.StartAt >= req.ExpiredAt {
-		return nil, ErrStartAfterEnd
+	if err := validateTopicRequest(req.Name, req.StartAt, req.ExpiredAt); err != nil {
+		return nil, err
 	}
 
 	var owner pgtype.UUID
@@ -301,6 +321,89 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (*CreateTopic
 	if err := tx.Commit(ctx); err != nil {
 		return nil, internalError(err.Error())
 	}
+	return &result, nil
+}
+
+type EditTopicResult struct {
+	Message string `json:"message"`
+}
+
+func (s *Service) EditTopic(ctx context.Context, topicIDStr string, body io.Reader) (*EditTopicResult, error) {
+	var result EditTopicResult
+
+	ownerID, ok := userIDFromContext(ctx)
+	if !ok {
+		return nil, ErrUnauthenticated
+	}
+
+	var topicID pgtype.UUID
+	if err := topicID.Scan(topicIDStr); err != nil {
+		return nil, ErrInvalidTopicParams
+	}
+
+	var req EditTopicRequest
+	if err := json.NewDecoder(body).Decode(&req); err != nil {
+		return nil, ErrInvalidJSON
+	}
+
+	if err := validateTopicRequest(req.Name, req.StartAt, req.ExpiredAt); err != nil {
+		return nil, err
+	}
+
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return nil, internalError(err.Error())
+	}
+	defer tx.Rollback(ctx)
+
+	q := sqlc.New(tx)
+
+	currentOwner, err := q.GetTopicOwner(ctx, topicID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrTopicOwnerNotFound
+		}
+		return nil, internalError(err.Error())
+	}
+
+	if currentOwner.String() != ownerID {
+		return nil, ErrForbidden
+	}
+
+	// Check if topic has already started
+	currentTopic, err := q.GetTopicById(ctx, topicID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrTopicNotFound
+		}
+		return nil, internalError(fmt.Sprintf("GetTopicById() failed, err: %s", err.Error()))
+	}
+
+	if currentTopic.StartAt <= int32(time.Now().Unix()) {
+		return nil, ErrTopicAlreadyStarted
+	}
+
+	if err := q.UpdateTopic(ctx, sqlc.UpdateTopicParams{
+		ID:        topicID,
+		Name:      req.Name,
+		StartAt:   req.StartAt,
+		ExpiredAt: req.ExpiredAt,
+	}); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrTopicNotFound
+		}
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return nil, ErrTopicNameTaken
+		}
+		return nil, internalError(fmt.Sprintf("UpdateTopic() failed, %s", err.Error()))
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, internalError(err.Error())
+	}
+
+	result.Message = "topic updated"
 	return &result, nil
 }
 

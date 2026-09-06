@@ -177,6 +177,33 @@ func (q *Queries) GetItemsByTopic(ctx context.Context, topicID pgtype.UUID) ([]G
 	return items, nil
 }
 
+const getTopicById = `-- name: GetTopicById :one
+SELECT id, name, start_at, expired_at, created_at
+FROM topics
+WHERE id = $1
+`
+
+type GetTopicByIdRow struct {
+	ID        pgtype.UUID `json:"id"`
+	Name      string      `json:"name"`
+	StartAt   int32       `json:"start_at"`
+	ExpiredAt int32       `json:"expired_at"`
+	CreatedAt int32       `json:"created_at"`
+}
+
+func (q *Queries) GetTopicById(ctx context.Context, id pgtype.UUID) (GetTopicByIdRow, error) {
+	row := q.db.QueryRow(ctx, getTopicById, id)
+	var i GetTopicByIdRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.StartAt,
+		&i.ExpiredAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getTopicOwner = `-- name: GetTopicOwner :one
 SELECT owner_id
 FROM topics
@@ -243,5 +270,28 @@ type UpdateItemPhotoUrlParams struct {
 
 func (q *Queries) UpdateItemPhotoUrl(ctx context.Context, arg UpdateItemPhotoUrlParams) error {
 	_, err := q.db.Exec(ctx, updateItemPhotoUrl, arg.ID, arg.PhotoUrl)
+	return err
+}
+
+const updateTopic = `-- name: UpdateTopic :exec
+UPDATE topics
+SET name = $2, start_at = $3, expired_at = $4
+WHERE id = $1
+`
+
+type UpdateTopicParams struct {
+	ID        pgtype.UUID `json:"id"`
+	Name      string      `json:"name"`
+	StartAt   int32       `json:"start_at"`
+	ExpiredAt int32       `json:"expired_at"`
+}
+
+func (q *Queries) UpdateTopic(ctx context.Context, arg UpdateTopicParams) error {
+	_, err := q.db.Exec(ctx, updateTopic,
+		arg.ID,
+		arg.Name,
+		arg.StartAt,
+		arg.ExpiredAt,
+	)
 	return err
 }
