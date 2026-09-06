@@ -59,7 +59,7 @@
 }
 
 .edit-button {
-  padding: 0.4rem 0.8rem;
+  padding: 0.35rem 0.65rem;
   background-color: #4a90d9;
   color: white;
   border: none;
@@ -98,10 +98,9 @@
 }
 
 .col-edit {
-  width: 0.1%;
+  width: 1%;
   white-space: nowrap;
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
+  padding: 0.25rem 0.35rem !important;
 }
 
 .topics-table tbody tr:hover {

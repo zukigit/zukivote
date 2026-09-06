@@ -99,9 +99,9 @@ function Topics() {
             <th className="col-edit"></th>
             <th>#</th>
             <th className="col-name">Name</th>
-            <th>Start</th>
-            <th>End</th>
-            <th>Created</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Created Time</th>
           </tr>
         </thead>
         <tbody>
