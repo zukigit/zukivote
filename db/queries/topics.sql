@@ -13,6 +13,11 @@ SELECT id, name, start_at, expired_at, created_at
 FROM topics
 WHERE owner_id = $1;
 
+-- name: CountVotersByTopic :one
+SELECT COUNT(*) AS voter_count
+FROM voters
+WHERE topic_id = $1;
+
 -- name: GetTopicOwner :one
 SELECT owner_id
 FROM topics

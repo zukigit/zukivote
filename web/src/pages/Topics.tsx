@@ -99,6 +99,7 @@ function Topics() {
             <th className="col-edit"></th>
             <th>#</th>
             <th className="col-name">Name</th>
+            <th>Voters</th>
             <th>Start Time</th>
             <th>End Time</th>
             <th>Created Time</th>
@@ -112,6 +113,7 @@ function Topics() {
               </td>
               <td>{index + 1}</td>
               <td className="col-name">{topic.name}</td>
+              <td>{topic.voter_count}</td>
               <td>{formatTimestamp(topic.start_at)}</td>
               <td>{formatTimestamp(topic.expired_at)}</td>
               <td>{formatTimestamp(topic.created_at)}</td>

@@ -105,7 +105,7 @@ Authorization: Bearer <jwt>
 
 | Status | Body |
 | ------ | ---- |
-| 200 OK | `{ "topics": [{ "id": "<uuid>", "name": "my-topic", "start_at": 1700000000, "expired_at": 1700086400 }, ...] }` |
+| 200 OK | `{ "topics": [{ "id": "<uuid>", "name": "my-topic", "start_at": 1700000000, "expired_at": 1700086400, "created_at": 1700000000, "voter_count": 3 }, ...] }` |
 | 401 Unauthorized | `{ "error": "invalid token" }` / `{ "error": "unauthenticated" }` / `{ "error": "invalid user" }` |
 | 500 Internal Server Error | `{ "error": "internal error" }` |
 

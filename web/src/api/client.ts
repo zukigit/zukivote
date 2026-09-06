@@ -80,6 +80,7 @@ export interface Topic {
   start_at: number
   expired_at: number
   created_at: number
+  voter_count: number
 }
 
 export interface GetTopicsResponse {

@@ -56,7 +56,7 @@ var (
 	ErrPhotoNotFound           = &ServiceError{StatusCode: http.StatusNotFound, Message: "photo not found"}
 	ErrExpiredAtInvalid        = &ServiceError{StatusCode: http.StatusBadRequest, Message: "End Time must be at least 15 minutes from now"}
 	ErrStartAtInvalid          = &ServiceError{StatusCode: http.StatusBadRequest, Message: "Start Time must be greater than now"}
-	ErrStartAfterEnd           = &ServiceError{StatusCode: http.StatusBadRequest, Message: "start_at must be before expired_at"}
+	ErrStartAfterEnd           = &ServiceError{StatusCode: http.StatusBadRequest, Message: "Start Time must be before End Time"}
 )
 
 const jwtTTL = 24 * time.Hour
@@ -305,11 +305,12 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (*CreateTopic
 }
 
 type TopicResult struct {
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	StartAt   int32  `json:"start_at"`
-	ExpiredAt int32  `json:"expired_at"`
-	CreatedAt int32  `json:"created_at"`
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	StartAt    int32  `json:"start_at"`
+	ExpiredAt  int32  `json:"expired_at"`
+	CreatedAt  int32  `json:"created_at"`
+	VoterCount int64  `json:"voter_count"`
 }
 
 type GetTopicsResult struct {
@@ -327,26 +328,33 @@ func (s *Service) GetTopics(ctx context.Context) (*GetTopicsResult, error) {
 		return nil, ErrInvalidUser
 	}
 
-	if _, err := sqlc.New(s.pool).GetUserByID(ctx, owner); err != nil {
+	q := sqlc.New(s.pool)
+
+	if _, err := q.GetUserByID(ctx, owner); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrInvalidUser
 		}
 		return nil, internalError(err.Error())
 	}
 
-	rows, err := sqlc.New(s.pool).GetTopicsByOwner(ctx, owner)
+	rows, err := q.GetTopicsByOwner(ctx, owner)
 	if err != nil {
 		return nil, internalError(fmt.Sprintf("GetTopicsByOwner() failed, err: %s", err.Error()))
 	}
 
 	result := &GetTopicsResult{Topics: make([]TopicResult, 0, len(rows))}
 	for _, row := range rows {
+		voterCount, err := q.CountVotersByTopic(ctx, row.ID)
+		if err != nil {
+			return nil, internalError(fmt.Sprintf("CountVotersByTopic() failed, err: %s", err.Error()))
+		}
 		result.Topics = append(result.Topics, TopicResult{
-			ID:        row.ID.String(),
-			Name:      row.Name,
-			StartAt:   row.StartAt,
-			ExpiredAt: row.ExpiredAt,
-			CreatedAt: row.CreatedAt,
+			ID:         row.ID.String(),
+			Name:       row.Name,
+			StartAt:    row.StartAt,
+			ExpiredAt:  row.ExpiredAt,
+			CreatedAt:  row.CreatedAt,
+			VoterCount: voterCount,
 		})
 	}
 	return result, nil
