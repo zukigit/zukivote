@@ -1,42 +1,73 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { getItems, getPhotoUrl, type Item } from '../api/client'
 import { clearToken } from '../api/auth'
 import './Items.css'
 
 function Items() {
   const navigate = useNavigate()
-  const { topicId } = useParams<{ topicId: string }>()
+  const location = useLocation()
+  const topicId = (location.state as { topicId?: string })?.topicId
   const [items, setItems] = useState<Item[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [message, setMessage] = useState('')
 
-  useEffect(() => {
-    async function fetchItems() {
-      if (!topicId) {
-        setError('Topic ID is required')
-        setLoading(false)
-        return
-      }
-
-      const { data, error: apiError, status } = await getItems(topicId)
-
-      if (apiError) {
-        setError(apiError)
-        if (status === 401) {
-          clearToken()
-          navigate('/login', { replace: true })
-        }
-        setLoading(false)
-        return
-      }
-
-      setItems(data?.items ?? [])
+  async function fetchItems() {
+    if (!topicId) {
+      setError('Topic ID is required')
       setLoading(false)
+      return
     }
 
+    const { data, error: apiError, status } = await getItems(topicId)
+
+    if (apiError) {
+      setError(apiError)
+      if (status === 401) {
+        clearToken()
+        navigate('/login', { replace: true })
+      }
+      setLoading(false)
+      return
+    }
+
+    setItems(data?.items ?? [])
+    setLoading(false)
+  }
+
+  useEffect(() => {
     fetchItems()
-  }, [topicId, navigate])
+  }, [topicId])
+
+  async function handleRefresh() {
+    setLoading(true)
+    setMessage('')
+    setError('')
+
+    const { data, error: apiError, status } = await getItems(topicId!)
+
+    if (apiError) {
+      setError(apiError)
+      if (status === 401) {
+        clearToken()
+        navigate('/login', { replace: true })
+      }
+      setLoading(false)
+      return
+    }
+
+    const newItems = data?.items ?? []
+    if (JSON.stringify(newItems) === JSON.stringify(items)) {
+      setMessage('No updates')
+    } else {
+      setMessage('Data updated')
+    }
+    setItems(newItems)
+    setLoading(false)
+
+    setTimeout(() => setMessage(''), 2000)
+  }
 
   if (loading) {
     return (
@@ -54,9 +85,12 @@ function Items() {
       <div className="items-header">
         <button className="icon" onClick={() => navigate('/topics')}>←</button>
         <h1>Items</h1>
+        <button className="icon" onClick={() => navigate('/items/create', { state: { topicId } })} title="Add Item">+</button>
+        <button className="icon" onClick={handleRefresh} title="Refresh" disabled={loading}>↻</button>
       </div>
 
       {error && <p className="items-error">{error}</p>}
+      {message && <p className={message === 'No updates' ? 'items-info' : 'items-message'}>{message}</p>}
 
       {items.length === 0 ? (
         <p className="items-empty">No items found</p>

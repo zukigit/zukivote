@@ -25,7 +25,7 @@ function App() {
         <Route path="/topics" element={<Topics />} />
         <Route path="/topics/create" element={<CreateTopic />} />
         <Route path="/topics/edit/:id" element={<EditTopic />} />
-        <Route path="/topics/:topicId/items" element={<Items />} />
+        <Route path="/items" element={<Items />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

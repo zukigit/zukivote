@@ -173,7 +173,7 @@ function Topics() {
                       <button
                         className="menu-item"
                         onClick={() => {
-                          navigate(`/topics/${topic.id}/items`)
+                          navigate('/items', { state: { topicId: topic.id } })
                           setOpenMenuId(null)
                         }}
                       >
