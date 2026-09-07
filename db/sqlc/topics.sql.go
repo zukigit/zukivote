@@ -309,6 +309,32 @@ func (q *Queries) GetTopicsByOwner(ctx context.Context, ownerID pgtype.UUID) ([]
 	return items, nil
 }
 
+const getVotersByTopic = `-- name: GetVotersByTopic :many
+SELECT id
+FROM voters
+WHERE topic_id = $1
+`
+
+func (q *Queries) GetVotersByTopic(ctx context.Context, topicID pgtype.UUID) ([]pgtype.UUID, error) {
+	rows, err := q.db.Query(ctx, getVotersByTopic, topicID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []pgtype.UUID
+	for rows.Next() {
+		var id pgtype.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateItemPhotoUrl = `-- name: UpdateItemPhotoUrl :exec
 UPDATE items
 SET photo_url = $2

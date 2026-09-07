@@ -81,3 +81,8 @@ WHERE id = $1;
 SELECT id, topic_id, description
 FROM items
 WHERE id = $1;
+
+-- name: GetVotersByTopic :many
+SELECT id
+FROM voters
+WHERE topic_id = $1;

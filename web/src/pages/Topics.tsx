@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getTopics, deleteTopic, type Topic } from '../api/client'
+import { getTopics, deleteTopic, getVoters, type Topic } from '../api/client'
 import { clearToken } from '../api/auth'
 import './Topics.css'
 import '../styles/icons.css'
@@ -72,6 +72,29 @@ function Topics() {
     setTopics(topics.filter((t) => t.id !== topicId))
     setMessage('Topic deleted')
     setTimeout(() => setMessage(''), 2000)
+  }
+
+  async function handleDownloadVoters(topicId: string, topicName: string) {
+    const { data, error: apiError, status } = await getVoters(topicId)
+
+    if (apiError) {
+      if (status === 401) {
+        clearToken()
+        navigate('/login', { replace: true })
+        return
+      }
+      setError(apiError)
+      return
+    }
+
+    const content = data?.voters.join('\n') ?? ''
+    const blob = new Blob([content], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${topicName}.txt`
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   async function handleRefresh() {
@@ -178,6 +201,15 @@ function Topics() {
                         }}
                       >
                         Items
+                      </button>
+                      <button
+                        className="menu-item"
+                        onClick={() => {
+                          handleDownloadVoters(topic.id, topic.name)
+                          setOpenMenuId(null)
+                        }}
+                      >
+                        Get Voter IDs
                       </button>
                       <button
                         className="menu-item menu-item-delete"

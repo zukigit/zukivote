@@ -525,6 +525,40 @@ func (s *Service) DeleteItem(ctx context.Context, itemIDStr string) (*DeleteItem
 	return &result, nil
 }
 
+type GetVotersResult struct {
+	Voters []string `json:"voters"`
+}
+
+func (s *Service) GetVoters(ctx context.Context, topicIDStr string) (*GetVotersResult, error) {
+	ownerID, ok := userIDFromContext(ctx)
+	if !ok {
+		return nil, ErrUnauthenticated
+	}
+
+	var topicID pgtype.UUID
+	if err := topicID.Scan(topicIDStr); err != nil {
+		return nil, ErrInvalidTopicParams
+	}
+
+	q := sqlc.New(s.pool)
+
+	if err := checkTopicOwnership(ctx, q, topicID, ownerID); err != nil {
+		return nil, err
+	}
+
+	rows, err := q.GetVotersByTopic(ctx, topicID)
+	if err != nil {
+		return nil, internalError(fmt.Sprintf("GetVotersByTopic() failed, err: %s", err.Error()))
+	}
+
+	voters := make([]string, 0, len(rows))
+	for _, row := range rows {
+		voters = append(voters, row.String())
+	}
+
+	return &GetVotersResult{Voters: voters}, nil
+}
+
 type TopicResult struct {
 	ID         string `json:"id"`
 	Name       string `json:"name"`

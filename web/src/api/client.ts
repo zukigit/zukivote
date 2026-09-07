@@ -156,6 +156,14 @@ export function deleteTopic(id: string): Promise<ApiResponse<DeleteTopicResponse
   })
 }
 
+export interface GetVotersResponse {
+  voters: string[]
+}
+
+export function getVoters(topicId: string): Promise<ApiResponse<GetVotersResponse>> {
+  return request<GetVotersResponse>(`/voters?topic_id=${topicId}`)
+}
+
 export interface ItemValue {
   id: number
   key: string

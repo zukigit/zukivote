@@ -286,6 +286,39 @@ Authorization: Bearer <jwt>
 
 ---
 
+### GET /voters
+
+Get all voter IDs for a topic. Requires authentication.
+
+**Headers**
+
+```
+Authorization: Bearer <jwt>
+```
+
+**Query parameters**
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `topic_id` | string | UUID of the topic to get voters from |
+
+**Responses**
+
+| Status | Body |
+| ------ | ---- |
+| 200 OK | `{ "voters": ["<uuid>", "<uuid>", ...] }` |
+| 400 Bad Request | `{ "error": "invalid topic params" }` |
+| 401 Unauthorized | `{ "error": "invalid token" }` / `{ "error": "unauthenticated" }` |
+| 403 Forbidden | `{ "error": "forbidden" }` |
+| 500 Internal Server Error | `{ "error": "internal error" }` |
+
+**Notes**
+
+- Only the owner of the topic can get its voters.
+- Returns an array of voter UUIDs.
+
+---
+
 ### GET /photo
 
 Serve an item's photo as an image.
