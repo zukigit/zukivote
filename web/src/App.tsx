@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard'
 import Topics from './pages/Topics'
 import CreateTopic from './pages/CreateTopic'
 import EditTopic from './pages/EditTopic'
+import Items from './pages/Items'
 import Layout from './components/Layout'
 import PrivateRoute from './components/PrivateRoute'
 
@@ -24,6 +25,7 @@ function App() {
         <Route path="/topics" element={<Topics />} />
         <Route path="/topics/create" element={<CreateTopic />} />
         <Route path="/topics/edit/:id" element={<EditTopic />} />
+        <Route path="/topics/:topicId/items" element={<Items />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

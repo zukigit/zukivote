@@ -17,11 +17,14 @@ http:
         value: "{{TOPIC_ID}}"
       - name: description
         type: text
-        value: Class Leader
+        value: Htoo Zaw Aung
       - name: photo
         type: file
         value:
           - /home/zuki/Pictures/mypp.jpg
+      - name: values
+        type: text
+        value: '[{"key": "color", "value": "black"}]'
 
 settings:
   encodeUrl: true

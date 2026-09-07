@@ -171,6 +171,15 @@ function Topics() {
                         Edit
                       </button>
                       <button
+                        className="menu-item"
+                        onClick={() => {
+                          navigate(`/topics/${topic.id}/items`)
+                          setOpenMenuId(null)
+                        }}
+                      >
+                        Items
+                      </button>
+                      <button
                         className="menu-item menu-item-delete"
                         onClick={() => {
                           handleDelete(topic.id, topic.name)

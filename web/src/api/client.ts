@@ -155,3 +155,27 @@ export function deleteTopic(id: string): Promise<ApiResponse<DeleteTopicResponse
     method: 'DELETE',
   })
 }
+
+export interface ItemValue {
+  id: number
+  key: string
+  value: string
+}
+
+export interface Item {
+  id: number
+  description: string
+  values: ItemValue[]
+}
+
+export interface GetItemsResponse {
+  items: Item[]
+}
+
+export function getItems(topicId: string): Promise<ApiResponse<GetItemsResponse>> {
+  return request<GetItemsResponse>(`/items?topic_id=${topicId}`)
+}
+
+export function getPhotoUrl(itemId: number): string {
+  return `${API_BASE}/photo?item_id=${itemId}`
+}
