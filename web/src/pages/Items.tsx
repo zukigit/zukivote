@@ -12,6 +12,7 @@ function Items() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
+  const [lightboxItem, setLightboxItem] = useState<Item | null>(null)
 
   async function fetchItems() {
     if (!topicId) {
@@ -98,7 +99,7 @@ function Items() {
         <div className="items-grid">
           {items.map((item) => (
             <div key={item.id} className="item-card">
-              <div className="item-photo">
+              <div className="item-photo" onClick={() => setLightboxItem(item)}>
                 <img
                   src={getPhotoUrl(item.id)}
                   alt={item.description}
@@ -122,6 +123,18 @@ function Items() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {lightboxItem && (
+        <div className="lightbox" onClick={() => setLightboxItem(null)}>
+          <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+            <button className="lightbox-close" onClick={() => setLightboxItem(null)}>×</button>
+            <img
+              src={getPhotoUrl(lightboxItem.id)}
+              alt={lightboxItem.description}
+            />
+          </div>
         </div>
       )}
     </div>

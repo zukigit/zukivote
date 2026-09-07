@@ -172,8 +172,35 @@ export interface GetItemsResponse {
   items: Item[]
 }
 
+export interface CreateItemRequest {
+  topic_id: string
+  description: string
+  values?: Array<{ key: string; value: string }>
+  photo: File
+}
+
+export interface CreateItemResponse {
+  item_id: number
+  photo_url: string
+}
+
 export function getItems(topicId: string): Promise<ApiResponse<GetItemsResponse>> {
   return request<GetItemsResponse>(`/items?topic_id=${topicId}`)
+}
+
+export function createItem(data: CreateItemRequest): Promise<ApiResponse<CreateItemResponse>> {
+  const formData = new FormData()
+  formData.append('topic_id', data.topic_id)
+  formData.append('description', data.description)
+  if (data.values && data.values.length > 0) {
+    formData.append('values', JSON.stringify(data.values))
+  }
+  formData.append('photo', data.photo)
+
+  return request<CreateItemResponse>('/items', {
+    method: 'POST',
+    body: formData,
+  })
 }
 
 export function getPhotoUrl(itemId: number): string {
