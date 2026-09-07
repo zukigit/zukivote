@@ -212,6 +212,18 @@ function Topics() {
                         Get Voter IDs
                       </button>
                       <button
+                        className="menu-item"
+                        onClick={() => {
+                          const link = `${window.location.origin}/voting/${topic.id}`
+                          navigator.clipboard.writeText(link)
+                          setMessage(`Link copied: ${link}`)
+                          setTimeout(() => setMessage(''), 5000)
+                          setOpenMenuId(null)
+                        }}
+                      >
+                        Get Voting Link
+                      </button>
+                      <button
                         className="menu-item menu-item-delete"
                         onClick={() => {
                           handleDelete(topic.id, topic.name)
