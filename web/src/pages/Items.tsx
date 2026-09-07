@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { getItems, getPhotoUrl, type Item } from '../api/client'
 import { clearToken } from '../api/auth'
@@ -13,6 +13,8 @@ function Items() {
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
   const [lightboxItem, setLightboxItem] = useState<Item | null>(null)
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   async function fetchItems() {
     if (!topicId) {
@@ -40,6 +42,20 @@ function Items() {
   useEffect(() => {
     fetchItems()
   }, [topicId])
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpenMenuId(null)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  function toggleMenu(itemId: number) {
+    setOpenMenuId(openMenuId === itemId ? null : itemId)
+  }
 
   async function handleRefresh() {
     setLoading(true)
@@ -99,6 +115,29 @@ function Items() {
         <div className="items-grid">
           {items.map((item) => (
             <div key={item.id} className="item-card">
+              <div className="item-card-header">
+                <div className="menu-container" ref={openMenuId === item.id ? menuRef : null}>
+                  <button
+                    className="menu-button"
+                    onClick={() => toggleMenu(item.id)}
+                    title="Menu"
+                  >
+                    ⋮
+                  </button>
+                  {openMenuId === item.id && (
+                    <div className="menu-dropdown">
+                      <button
+                        className="menu-item menu-item-delete"
+                        onClick={() => {
+                          setOpenMenuId(null)
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
               <div className="item-photo" onClick={() => setLightboxItem(item)}>
                 <img
                   src={getPhotoUrl(item.id)}

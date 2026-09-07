@@ -32,6 +32,15 @@
   font-size: 0.9rem;
 }
 
+.create-item-success {
+  background-color: #152a15;
+  color: #6bff6b;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
 .form-group {
   margin-bottom: 1.5rem;
 }

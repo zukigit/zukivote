@@ -17,6 +17,7 @@ function CreateItem() {
   const [photo, setPhoto] = useState<File | null>(null)
   const [values, setValues] = useState<KeyValue[]>([])
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   if (!topicId) {
@@ -61,6 +62,7 @@ function CreateItem() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+    setSuccess('')
 
     if (!description.trim()) {
       setError('Description is required')
@@ -101,7 +103,14 @@ function CreateItem() {
       return
     }
 
-    navigate('/items', { state: { topicId } })
+    setSuccess('Item created successfully')
+    setDescription('')
+    setPhoto(null)
+    setValues([])
+    const fileInput = document.getElementById('photo') as HTMLInputElement
+    if (fileInput) {
+      fileInput.value = ''
+    }
   }
 
   return (
@@ -113,6 +122,7 @@ function CreateItem() {
 
       <form className="create-item-form" onSubmit={handleSubmit}>
         {error && <p className="create-item-error">{error}</p>}
+        {success && <p className="create-item-success">{success}</p>}
 
         <div className="form-group">
           <label htmlFor="description">Description</label>
@@ -133,7 +143,6 @@ function CreateItem() {
             type="file"
             accept="image/*"
             onChange={handlePhotoChange}
-            required
           />
           {photo && <p className="file-name">{photo.name}</p>}
         </div>
