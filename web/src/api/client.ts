@@ -81,6 +81,7 @@ export interface Topic {
   expired_at: number
   created_at: number
   voter_count: number
+  item_count: number
 }
 
 export interface GetTopicsResponse {

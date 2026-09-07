@@ -11,6 +11,19 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countItemsByTopic = `-- name: CountItemsByTopic :one
+SELECT COUNT(*) AS item_count
+FROM items
+WHERE topic_id = $1
+`
+
+func (q *Queries) CountItemsByTopic(ctx context.Context, topicID pgtype.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, countItemsByTopic, topicID)
+	var item_count int64
+	err := row.Scan(&item_count)
+	return item_count, err
+}
+
 const countVotersByTopic = `-- name: CountVotersByTopic :one
 SELECT COUNT(*) AS voter_count
 FROM voters

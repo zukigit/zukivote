@@ -482,6 +482,7 @@ type TopicResult struct {
 	ExpiredAt  int32  `json:"expired_at"`
 	CreatedAt  int32  `json:"created_at"`
 	VoterCount int64  `json:"voter_count"`
+	ItemCount  int64  `json:"item_count"`
 }
 
 type GetTopicsResult struct {
@@ -519,6 +520,10 @@ func (s *Service) GetTopics(ctx context.Context) (*GetTopicsResult, error) {
 		if err != nil {
 			return nil, internalError(fmt.Sprintf("CountVotersByTopic() failed, err: %s", err.Error()))
 		}
+		itemCount, err := q.CountItemsByTopic(ctx, row.ID)
+		if err != nil {
+			return nil, internalError(fmt.Sprintf("CountItemsByTopic() failed, err: %s", err.Error()))
+		}
 		result.Topics = append(result.Topics, TopicResult{
 			ID:         row.ID.String(),
 			Name:       row.Name,
@@ -526,6 +531,7 @@ func (s *Service) GetTopics(ctx context.Context) (*GetTopicsResult, error) {
 			ExpiredAt:  row.ExpiredAt,
 			CreatedAt:  row.CreatedAt,
 			VoterCount: voterCount,
+			ItemCount:  itemCount,
 		})
 	}
 	return result, nil

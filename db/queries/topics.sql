@@ -18,6 +18,11 @@ SELECT COUNT(*) AS voter_count
 FROM voters
 WHERE topic_id = $1;
 
+-- name: CountItemsByTopic :one
+SELECT COUNT(*) AS item_count
+FROM items
+WHERE topic_id = $1;
+
 -- name: GetTopicOwner :one
 SELECT owner_id
 FROM topics
