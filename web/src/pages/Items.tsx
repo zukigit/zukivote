@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { getItems, getPhotoUrl, type Item } from '../api/client'
+import { getItems, getPhotoUrl, deleteItem, type Item } from '../api/client'
 import { clearToken } from '../api/auth'
 import './Items.css'
 
@@ -55,6 +55,30 @@ function Items() {
 
   function toggleMenu(itemId: number) {
     setOpenMenuId(openMenuId === itemId ? null : itemId)
+  }
+
+  async function handleDelete(itemId: number, itemName: string) {
+    if (!window.confirm(`Are you sure you want to delete "${itemName}"?`)) {
+      return
+    }
+
+    setOpenMenuId(null)
+
+    const { error: apiError, status } = await deleteItem(itemId)
+
+    if (apiError) {
+      if (status === 401) {
+        clearToken()
+        navigate('/login', { replace: true })
+        return
+      }
+      setError(apiError)
+      return
+    }
+
+    setItems(items.filter((item) => item.id !== itemId))
+    setMessage('Item deleted')
+    setTimeout(() => setMessage(''), 2000)
   }
 
   async function handleRefresh() {
@@ -128,9 +152,7 @@ function Items() {
                     <div className="menu-dropdown">
                       <button
                         className="menu-item menu-item-delete"
-                        onClick={() => {
-                          setOpenMenuId(null)
-                        }}
+                        onClick={() => handleDelete(item.id, item.description)}
                       >
                         Delete
                       </button>

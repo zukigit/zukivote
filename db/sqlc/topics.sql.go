@@ -114,6 +114,16 @@ func (q *Queries) CreateVoter(ctx context.Context, topicID pgtype.UUID) (pgtype.
 	return id, err
 }
 
+const deleteItem = `-- name: DeleteItem :exec
+DELETE FROM items
+WHERE id = $1
+`
+
+func (q *Queries) DeleteItem(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, deleteItem, id)
+	return err
+}
+
 const deleteTopic = `-- name: DeleteTopic :exec
 DELETE FROM topics
 WHERE id = $1
@@ -122,6 +132,25 @@ WHERE id = $1
 func (q *Queries) DeleteTopic(ctx context.Context, id pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, deleteTopic, id)
 	return err
+}
+
+const getItemById = `-- name: GetItemById :one
+SELECT id, topic_id, description
+FROM items
+WHERE id = $1
+`
+
+type GetItemByIdRow struct {
+	ID          int32       `json:"id"`
+	TopicID     pgtype.UUID `json:"topic_id"`
+	Description string      `json:"description"`
+}
+
+func (q *Queries) GetItemById(ctx context.Context, id int32) (GetItemByIdRow, error) {
+	row := q.db.QueryRow(ctx, getItemById, id)
+	var i GetItemByIdRow
+	err := row.Scan(&i.ID, &i.TopicID, &i.Description)
+	return i, err
 }
 
 const getItemPhotoUrl = `-- name: GetItemPhotoUrl :one

@@ -43,6 +43,7 @@ func (h *Handler) Register(r *mux.Router) {
 	items.Use(h.authMiddleware)
 	items.HandleFunc("", h.CreateItem).Methods(http.MethodPost, http.MethodOptions)
 	items.HandleFunc("", h.GetItems).Methods(http.MethodGet, http.MethodOptions)
+	items.HandleFunc("/{id}", h.DeleteItem).Methods(http.MethodDelete, http.MethodOptions)
 }
 
 type errorResponse struct {
@@ -159,6 +160,19 @@ func (h *Handler) DeleteTopic(w http.ResponseWriter, r *http.Request) {
 	topicID := vars["id"]
 
 	result, err := h.users.DeleteTopic(r.Context(), topicID)
+	if err != nil {
+		writeServiceError(w, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, result)
+}
+
+func (h *Handler) DeleteItem(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	itemID := vars["id"]
+
+	result, err := h.users.DeleteItem(r.Context(), itemID)
 	if err != nil {
 		writeServiceError(w, err)
 		return

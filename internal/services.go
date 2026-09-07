@@ -46,6 +46,7 @@ var (
 	ErrEmptyItemValue          = &ServiceError{StatusCode: http.StatusBadRequest, Message: "item value key and value are required"}
 	ErrTopicNotFound           = &ServiceError{StatusCode: http.StatusNotFound, Message: "topic not found"}
 	ErrTopicOwnerNotFound      = &ServiceError{StatusCode: http.StatusNotFound, Message: "topic owner not found"}
+	ErrItemNotFound            = &ServiceError{StatusCode: http.StatusNotFound, Message: "item not found"}
 	ErrForbidden               = &ServiceError{StatusCode: http.StatusForbidden, Message: "forbidden"}
 	ErrInvalidForm             = &ServiceError{StatusCode: http.StatusBadRequest, Message: "invalid form data"}
 	ErrPhotoTooLarge           = &ServiceError{StatusCode: http.StatusBadRequest, Message: "photo too large"}
@@ -472,6 +473,55 @@ func (s *Service) DeleteTopic(ctx context.Context, topicIDStr string) (*DeleteTo
 	}
 
 	result.Message = "topic deleted"
+	return &result, nil
+}
+
+type DeleteItemResult struct {
+	Message string `json:"message"`
+}
+
+func (s *Service) DeleteItem(ctx context.Context, itemIDStr string) (*DeleteItemResult, error) {
+	var result DeleteItemResult
+
+	ownerID, ok := userIDFromContext(ctx)
+	if !ok {
+		return nil, ErrUnauthenticated
+	}
+
+	itemID, err := strconv.ParseInt(itemIDStr, 10, 32)
+	if err != nil {
+		return nil, ErrInvalidItemParams
+	}
+
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return nil, internalError(err.Error())
+	}
+	defer tx.Rollback(ctx)
+
+	q := sqlc.New(tx)
+
+	item, err := q.GetItemById(ctx, int32(itemID))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrItemNotFound
+		}
+		return nil, internalError(fmt.Sprintf("GetItemById() failed, err: %s", err.Error()))
+	}
+
+	if err := checkTopicOwnership(ctx, q, item.TopicID, ownerID); err != nil {
+		return nil, err
+	}
+
+	if err := q.DeleteItem(ctx, int32(itemID)); err != nil {
+		return nil, internalError(fmt.Sprintf("DeleteItem() failed, err: %s", err.Error()))
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, internalError(err.Error())
+	}
+
+	result.Message = "item deleted"
 	return &result, nil
 }
 

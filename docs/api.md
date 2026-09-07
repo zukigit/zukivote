@@ -258,6 +258,34 @@ Authorization: Bearer <jwt>
 
 ---
 
+### DELETE /items/{id}
+
+Delete an existing item. Requires authentication.
+
+**Headers**
+
+```
+Authorization: Bearer <jwt>
+```
+
+**Responses**
+
+| Status | Body |
+| ------ | ---- |
+| 200 OK | `{ "message": "item deleted" }` |
+| 400 Bad Request | `{ "error": "invalid item params" }` |
+| 401 Unauthorized | `{ "error": "invalid token" }` / `{ "error": "unauthenticated" }` |
+| 403 Forbidden | `{ "error": "forbidden" }` |
+| 404 Not Found | `{ "error": "item not found" }` |
+| 500 Internal Server Error | `{ "error": "internal error" }` |
+
+**Notes**
+
+- Only the owner of the topic can delete its items.
+- Deleting an item also deletes all associated item_values and records (cascade delete).
+
+---
+
 ### GET /photo
 
 Serve an item's photo as an image.

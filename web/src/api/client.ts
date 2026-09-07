@@ -184,6 +184,10 @@ export interface CreateItemResponse {
   photo_url: string
 }
 
+export interface DeleteItemResponse {
+  message: string
+}
+
 export function getItems(topicId: string): Promise<ApiResponse<GetItemsResponse>> {
   return request<GetItemsResponse>(`/items?topic_id=${topicId}`)
 }
@@ -200,6 +204,12 @@ export function createItem(data: CreateItemRequest): Promise<ApiResponse<CreateI
   return request<CreateItemResponse>('/items', {
     method: 'POST',
     body: formData,
+  })
+}
+
+export function deleteItem(id: number): Promise<ApiResponse<DeleteItemResponse>> {
+  return request<DeleteItemResponse>(`/items/${id}`, {
+    method: 'DELETE',
   })
 }
 

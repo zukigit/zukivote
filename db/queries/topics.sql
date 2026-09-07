@@ -72,3 +72,12 @@ SELECT item_values.id, item_values.item_id, item_values.key, item_values.value
 FROM item_values
 JOIN items ON items.id = item_values.item_id
 WHERE items.topic_id = $1;
+
+-- name: DeleteItem :exec
+DELETE FROM items
+WHERE id = $1;
+
+-- name: GetItemById :one
+SELECT id, topic_id, description
+FROM items
+WHERE id = $1;
