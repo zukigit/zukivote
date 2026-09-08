@@ -62,6 +62,7 @@ var (
 	ErrTopicAlreadyStarted     = &ServiceError{StatusCode: http.StatusBadRequest, Message: "cannot modify a topic that has already started"}
 	ErrNewStartLessThanCurrent = &ServiceError{StatusCode: http.StatusBadRequest, Message: "new start time cannot be earlier than current start time"}
 	ErrTopicActive             = &ServiceError{StatusCode: http.StatusBadRequest, Message: "cannot delete a topic that has started and not yet ended"}
+	ErrItemDescriptionTaken    = &ServiceError{StatusCode: http.StatusConflict, Message: "description is already taken"}
 )
 
 const jwtTTL = 24 * time.Hour
@@ -817,6 +818,10 @@ func (s *Service) CreateItem(ctx context.Context, r *http.Request) (*CreateItemR
 		Description: description,
 	})
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return nil, ErrItemDescriptionTaken
+		}
 		return nil, internalError(fmt.Sprintf("CreateItem() failed, err: %s", err.Error()))
 	}
 

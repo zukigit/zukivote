@@ -87,7 +87,7 @@ erDiagram
 | ----------- | -------- | -------------------------- |
 | id          | INTEGER  | PRIMARY KEY, AUTO INCREMENT |
 | topic_id    | UUID     | NOT NULL, FOREIGN KEY references topics(id) ON DELETE CASCADE |
-| description | VARCHAR  | NOT NULL                   |
+| description | VARCHAR  | NOT NULL, UNIQUE           |
 | photo_url   | VARCHAR  |                            |
 
 > `voted_count` is not stored; it is derived as `COUNT(records)` where `records.item_id = items.id`.

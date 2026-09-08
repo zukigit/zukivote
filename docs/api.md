@@ -215,6 +215,7 @@ Authorization: Bearer <jwt>
 | 401 Unauthorized | `{ "error": "invalid token" }` / `{ "error": "unauthenticated" }` |
 | 403 Forbidden | `{ "error": "forbidden" }` |
 | 404 Not Found | `{ "error": "topic not found" }` |
+| 409 Conflict | `{ "error": "description is already taken" }` |
 | 500 Internal Server Error | `{ "error": "internal error" }` |
 
 **Notes**
