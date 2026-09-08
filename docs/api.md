@@ -352,6 +352,32 @@ Cast a vote for an item. No authentication required.
 
 ---
 
+### GET /voting
+
+Get voting results for a topic. No authentication required.
+
+**Query parameters**
+
+| Parameter | Type | Description |
+| --------- | ---- | ----------- |
+| `topic_id` | string | UUID of the topic to get voting results for |
+
+**Responses**
+
+| Status | Body |
+| ------ | ---- |
+| 200 OK | `{ "results": { "1": 5, "2": 3, "3": 0 } }` |
+| 400 Bad Request | `{ "error": "invalid topic params" }` |
+| 500 Internal Server Error | `{ "error": "internal error" }` |
+
+**Notes**
+
+- Returns a map of item IDs to vote counts.
+- All items in the topic are included, even those with 0 votes.
+- Vote count is derived from `COUNT(records)` for each item.
+
+---
+
 ### GET /photo
 
 Serve an item's photo as an image.

@@ -959,3 +959,36 @@ func (s *Service) Vote(ctx context.Context, body io.Reader) (*VoteResult, error)
 
 	return &VoteResult{RecordID: recordID}, nil
 }
+
+type GetVotingResultsResult struct {
+	Results map[int32]int64 `json:"results"`
+}
+
+func (s *Service) GetVotingResults(ctx context.Context, topicIDStr string) (*GetVotingResultsResult, error) {
+	if topicIDStr == "" {
+		return nil, ErrInvalidTopicParams
+	}
+
+	var topicID pgtype.UUID
+	if err := topicID.Scan(topicIDStr); err != nil {
+		return nil, ErrInvalidTopicParams
+	}
+
+	q := sqlc.New(s.pool)
+
+	items, err := q.GetItemsByTopic(ctx, topicID)
+	if err != nil {
+		return nil, internalError(fmt.Sprintf("GetItemsByTopic() failed, err: %s", err.Error()))
+	}
+
+	results := make(map[int32]int64)
+	for _, item := range items {
+		voteCount, err := q.CountVotesByItem(ctx, item.ID)
+		if err != nil {
+			return nil, internalError(fmt.Sprintf("CountVotesByItem() failed, err: %s", err.Error()))
+		}
+		results[item.ID] = voteCount
+	}
+
+	return &GetVotingResultsResult{Results: results}, nil
+}

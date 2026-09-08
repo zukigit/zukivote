@@ -51,6 +51,7 @@ func (h *Handler) Register(r *mux.Router) {
 
 	voting := r.PathPrefix("/voting").Subrouter()
 	voting.HandleFunc("", h.Vote).Methods(http.MethodPost, http.MethodOptions)
+	voting.HandleFunc("", h.GetVotingResults).Methods(http.MethodGet, http.MethodOptions)
 }
 
 type errorResponse struct {
@@ -238,6 +239,16 @@ func (h *Handler) Vote(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusCreated, result)
+}
+
+func (h *Handler) GetVotingResults(w http.ResponseWriter, r *http.Request) {
+	result, err := h.users.GetVotingResults(r.Context(), r.URL.Query().Get("topic_id"))
+	if err != nil {
+		writeServiceError(w, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, result)
 }
 
 func (h *Handler) GetItemPhoto(w http.ResponseWriter, r *http.Request) {
