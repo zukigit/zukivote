@@ -21,8 +21,9 @@ CREATE TABLE voters (
 CREATE TABLE items (
     id          INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     topic_id    UUID NOT NULL REFERENCES topics(id) ON DELETE CASCADE,
-    description VARCHAR NOT NULL UNIQUE,
-    photo_url   VARCHAR
+    description VARCHAR NOT NULL,
+    photo_url   VARCHAR,
+    UNIQUE (topic_id, description)
 );
 
 CREATE TABLE item_values (

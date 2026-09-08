@@ -62,7 +62,7 @@ var (
 	ErrTopicAlreadyStarted     = &ServiceError{StatusCode: http.StatusBadRequest, Message: "cannot modify a topic that has already started"}
 	ErrNewStartLessThanCurrent = &ServiceError{StatusCode: http.StatusBadRequest, Message: "new start time cannot be earlier than current start time"}
 	ErrTopicActive             = &ServiceError{StatusCode: http.StatusBadRequest, Message: "cannot delete a topic that has started and not yet ended"}
-	ErrItemDescriptionTaken    = &ServiceError{StatusCode: http.StatusConflict, Message: "item description is already taken"}
+	ErrItemDescriptionTaken    = &ServiceError{StatusCode: http.StatusConflict, Message: "item description already exists in this topic"}
 	ErrVotingNotStarted        = &ServiceError{StatusCode: http.StatusBadRequest, Message: "voting has not started yet"}
 	ErrVotingExpired           = &ServiceError{StatusCode: http.StatusBadRequest, Message: "voting has expired"}
 	ErrVoterItemMismatch       = &ServiceError{StatusCode: http.StatusBadRequest, Message: "voter and item do not belong to the same topic"}
