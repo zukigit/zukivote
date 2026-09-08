@@ -48,6 +48,9 @@ func (h *Handler) Register(r *mux.Router) {
 	voters := r.PathPrefix("/voters").Subrouter()
 	voters.Use(h.authMiddleware)
 	voters.HandleFunc("", h.GetVoters).Methods(http.MethodGet, http.MethodOptions)
+
+	voting := r.PathPrefix("/voting").Subrouter()
+	voting.HandleFunc("", h.Vote).Methods(http.MethodPost, http.MethodOptions)
 }
 
 type errorResponse struct {
@@ -225,6 +228,16 @@ func (h *Handler) GetVoters(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, result)
+}
+
+func (h *Handler) Vote(w http.ResponseWriter, r *http.Request) {
+	result, err := h.users.Vote(r.Context(), r.Body)
+	if err != nil {
+		writeServiceError(w, err)
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, result)
 }
 
 func (h *Handler) GetItemPhoto(w http.ResponseWriter, r *http.Request) {

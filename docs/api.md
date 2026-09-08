@@ -320,6 +320,38 @@ Authorization: Bearer <jwt>
 
 ---
 
+### POST /voting
+
+Cast a vote for an item. No authentication required.
+
+**Request body**
+
+```json
+{
+  "voter_id": "<uuid>",
+  "item_id": 1
+}
+```
+
+**Responses**
+
+| Status | Body |
+| ------ | ---- |
+| 201 Created | `{ "record_id": 1 }` |
+| 400 Bad Request | `{ "error": "invalid request body" }` / `{ "error": "invalid item params" }` / `{ "error": "voter and item do not belong to the same topic" }` / `{ "error": "voting has not started yet" }` / `{ "error": "voting has expired" }` |
+| 404 Not Found | `{ "error": "topic not found" }` / `{ "error": "item not found" }` |
+| 409 Conflict | `{ "error": "voter has already voted for this item" }` |
+| 500 Internal Server Error | `{ "error": "internal error" }` |
+
+**Notes**
+
+- The voter and item must belong to the same topic.
+- Voting is only allowed between `topics.start_at` and `topics.expired_at`.
+- Each voter can only vote once per item (enforced by unique constraint).
+- Returns the created record ID.
+
+---
+
 ### GET /photo
 
 Serve an item's photo as an image.

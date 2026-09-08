@@ -62,7 +62,11 @@ var (
 	ErrTopicAlreadyStarted     = &ServiceError{StatusCode: http.StatusBadRequest, Message: "cannot modify a topic that has already started"}
 	ErrNewStartLessThanCurrent = &ServiceError{StatusCode: http.StatusBadRequest, Message: "new start time cannot be earlier than current start time"}
 	ErrTopicActive             = &ServiceError{StatusCode: http.StatusBadRequest, Message: "cannot delete a topic that has started and not yet ended"}
-	ErrItemDescriptionTaken    = &ServiceError{StatusCode: http.StatusConflict, Message: "description is already taken"}
+	ErrItemDescriptionTaken    = &ServiceError{StatusCode: http.StatusConflict, Message: "item description is already taken"}
+	ErrVotingNotStarted        = &ServiceError{StatusCode: http.StatusBadRequest, Message: "voting has not started yet"}
+	ErrVotingExpired           = &ServiceError{StatusCode: http.StatusBadRequest, Message: "voting has expired"}
+	ErrVoterItemMismatch       = &ServiceError{StatusCode: http.StatusBadRequest, Message: "voter and item do not belong to the same topic"}
+	ErrAlreadyVoted            = &ServiceError{StatusCode: http.StatusConflict, Message: "voter has already voted for this item"}
 )
 
 const jwtTTL = 24 * time.Hour
@@ -866,4 +870,92 @@ func (s *Service) CreateItem(ctx context.Context, r *http.Request) (*CreateItemR
 	}
 
 	return &CreateItemResult{ItemID: itemID, PhotoURL: photoURL}, nil
+}
+
+type VoteRequest struct {
+	VoterID string `json:"voter_id"`
+	ItemID  int32  `json:"item_id"`
+}
+
+type VoteResult struct {
+	RecordID int32 `json:"record_id"`
+}
+
+func (s *Service) Vote(ctx context.Context, body io.Reader) (*VoteResult, error) {
+	var req VoteRequest
+	if err := json.NewDecoder(body).Decode(&req); err != nil {
+		return nil, ErrInvalidJSON
+	}
+
+	if req.VoterID == "" || req.ItemID <= 0 {
+		return nil, ErrInvalidItemParams
+	}
+
+	var voterID pgtype.UUID
+	if err := voterID.Scan(req.VoterID); err != nil {
+		return nil, ErrInvalidItemParams
+	}
+
+	tx, err := s.pool.Begin(ctx)
+	if err != nil {
+		return nil, internalError(err.Error())
+	}
+	defer tx.Rollback(ctx)
+
+	q := sqlc.New(tx)
+
+	voter, err := q.GetVoterById(ctx, voterID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrTopicNotFound
+		}
+		return nil, internalError(fmt.Sprintf("GetVoterById() failed, err: %s", err.Error()))
+	}
+
+	item, err := q.GetItemById(ctx, req.ItemID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrItemNotFound
+		}
+		return nil, internalError(fmt.Sprintf("GetItemById() failed, err: %s", err.Error()))
+	}
+
+	if voter.TopicID != item.TopicID {
+		return nil, ErrVoterItemMismatch
+	}
+
+	topic, err := q.GetTopicById(ctx, voter.TopicID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrTopicNotFound
+		}
+		return nil, internalError(fmt.Sprintf("GetTopicById() failed, err: %s", err.Error()))
+	}
+
+	now := int32(time.Now().Unix())
+	if now < topic.StartAt {
+		return nil, ErrVotingNotStarted
+	}
+	if now >= topic.ExpiredAt {
+		return nil, ErrVotingExpired
+	}
+
+	recordID, err := q.CreateRecord(ctx, sqlc.CreateRecordParams{
+		VoterID:   voterID,
+		ItemID:    req.ItemID,
+		CreatedAt: now,
+	})
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return nil, ErrAlreadyVoted
+		}
+		return nil, internalError(fmt.Sprintf("CreateRecord() failed, err: %s", err.Error()))
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, internalError(err.Error())
+	}
+
+	return &VoteResult{RecordID: recordID}, nil
 }

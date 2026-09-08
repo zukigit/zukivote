@@ -1,0 +1,9 @@
+-- name: GetVoterById :one
+SELECT id, topic_id
+FROM voters
+WHERE id = $1;
+
+-- name: CreateRecord :one
+INSERT INTO records (voter_id, item_id, created_at)
+VALUES ($1, $2, $3)
+RETURNING id;
