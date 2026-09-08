@@ -26,6 +26,39 @@
   font-size: 0.9rem;
 }
 
+.voting-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.voting-status-not-started {
+  background-color: #2a2a15;
+  color: #e6d76b;
+}
+
+.voting-status-active {
+  background-color: #152a15;
+  color: #6bff6b;
+}
+
+.voting-status-ended {
+  background-color: #2a1515;
+  color: #ff6b6b;
+}
+
+.voting-status-label {
+  font-weight: 500;
+}
+
+.voting-status-time {
+  font-weight: 400;
+}
+
 .voting-empty {
   text-align: center;
   color: #666;

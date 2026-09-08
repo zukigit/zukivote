@@ -187,7 +187,7 @@ function Topics() {
                       <button
                         className="menu-item"
                         onClick={() => {
-                          navigate('/voting', { state: { topicId: topic.id } })
+                          navigate('/voting', { state: { topicId: topic.id, startAt: topic.start_at, expiredAt: topic.expired_at } })
                           setOpenMenuId(null)
                         }}
                       >

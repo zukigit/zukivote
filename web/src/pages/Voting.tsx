@@ -5,11 +5,31 @@ import { clearToken } from '../api/auth'
 import './Voting.css'
 
 type VoteStatus = 'idle' | 'submitting' | 'success' | 'failure'
+type VotingStatus = 'not-started' | 'active' | 'ended'
+
+function getVotingStatus(startAt: number, expiredAt: number): VotingStatus {
+  const now = Math.floor(Date.now() / 1000)
+  if (now < startAt) return 'not-started'
+  if (now >= expiredAt) return 'ended'
+  return 'active'
+}
+
+function formatTimestamp(timestamp: number) {
+  const date = new Date(timestamp * 1000)
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+  return date.toLocaleString(undefined, {
+    hour12: false,
+    timeZone: tz,
+  }) + `, ${tz}`
+}
 
 function Voting() {
   const navigate = useNavigate()
   const location = useLocation()
-  const topicId = (location.state as { topicId?: string })?.topicId
+  const state = location.state as { topicId?: string; startAt?: number; expiredAt?: number }
+  const topicId = state?.topicId
+  const startAt = state?.startAt ?? 0
+  const expiredAt = state?.expiredAt ?? 0
   const [items, setItems] = useState<Item[]>([])
   const [voteCounts, setVoteCounts] = useState<Record<number, number>>({})
   const [error, setError] = useState('')
@@ -23,6 +43,8 @@ function Voting() {
   const [voterId, setVoterId] = useState('')
   const [voteStatus, setVoteStatus] = useState<VoteStatus>('idle')
   const [voteMessage, setVoteMessage] = useState('')
+
+  const votingStatus = getVotingStatus(startAt, expiredAt)
 
   async function fetchData() {
     if (!topicId) {
@@ -168,6 +190,24 @@ function Voting() {
       </div>
 
       {error && <p className="voting-error">{error}</p>}
+
+      <div className={`voting-status voting-status-${votingStatus}`}>
+        {votingStatus === 'not-started' && (
+          <>
+            <span className="voting-status-label">Voting starts at:</span>
+            <span className="voting-status-time">{formatTimestamp(startAt)}</span>
+          </>
+        )}
+        {votingStatus === 'active' && (
+          <>
+            <span className="voting-status-label">Voting ends at:</span>
+            <span className="voting-status-time">{formatTimestamp(expiredAt)}</span>
+          </>
+        )}
+        {votingStatus === 'ended' && (
+          <span className="voting-status-label">Voting has ended</span>
+        )}
+      </div>
 
       {items.length === 0 ? (
         <p className="voting-empty">No items found</p>
