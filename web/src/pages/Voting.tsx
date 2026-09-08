@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { getItems, getVotingResults, getPhotoUrl, type Item } from '../api/client'
+import { getItems, getVotingResults, vote, getPhotoUrl, type Item } from '../api/client'
 import { clearToken } from '../api/auth'
 import './Voting.css'
+
+type VoteStatus = 'idle' | 'submitting' | 'success' | 'failure'
 
 function Voting() {
   const navigate = useNavigate()
@@ -12,8 +14,15 @@ function Voting() {
   const [voteCounts, setVoteCounts] = useState<Record<number, number>>({})
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
-  const [message, setMessage] = useState('')
   const [lightboxItem, setLightboxItem] = useState<Item | null>(null)
+  const [openMenuId, setOpenMenuId] = useState<number | null>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  // Vote modal state
+  const [voteItem, setVoteItem] = useState<Item | null>(null)
+  const [voterId, setVoterId] = useState('')
+  const [voteStatus, setVoteStatus] = useState<VoteStatus>('idle')
+  const [voteMessage, setVoteMessage] = useState('')
 
   async function fetchData() {
     if (!topicId) {
@@ -52,9 +61,65 @@ function Voting() {
     fetchData()
   }, [topicId])
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setOpenMenuId(null)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  function toggleMenu(itemId: number) {
+    setOpenMenuId(openMenuId === itemId ? null : itemId)
+  }
+
+  function openVoteModal(item: Item) {
+    setVoteItem(item)
+    setVoteStatus('idle')
+    setVoteMessage('')
+    setOpenMenuId(null)
+  }
+
+  function closeVoteModal() {
+    setVoteItem(null)
+    setVoteStatus('idle')
+    setVoteMessage('')
+  }
+
+  async function handleVote() {
+    if (!voteItem) return
+    if (!voterId.trim()) {
+      setVoteMessage('Please enter your Voter ID')
+      return
+    }
+
+    setVoteStatus('submitting')
+    setVoteMessage('')
+
+    const { error: apiError } = await vote({
+      voter_id: voterId.trim(),
+      item_id: voteItem.id,
+    })
+
+    if (apiError) {
+      setVoteStatus('failure')
+      setVoteMessage(apiError)
+      return
+    }
+
+    setVoteStatus('success')
+    setVoteMessage('Vote recorded successfully')
+
+    const votingResult = await getVotingResults(topicId!)
+    if (votingResult.data) {
+      setVoteCounts(votingResult.data.results)
+    }
+  }
+
   async function handleRefresh() {
     setLoading(true)
-    setMessage('')
     setError('')
 
     const [itemsResult, votingResult] = await Promise.all([
@@ -80,10 +145,7 @@ function Voting() {
 
     setItems(itemsResult.data?.items ?? [])
     setVoteCounts(votingResult.data?.results ?? {})
-    setMessage('Data updated')
     setLoading(false)
-
-    setTimeout(() => setMessage(''), 2000)
   }
 
   if (loading) {
@@ -106,7 +168,6 @@ function Voting() {
       </div>
 
       {error && <p className="voting-error">{error}</p>}
-      {message && <p className="voting-message">{message}</p>}
 
       {items.length === 0 ? (
         <p className="voting-empty">No items found</p>
@@ -114,6 +175,27 @@ function Voting() {
         <div className="voting-grid">
           {items.map((item) => (
             <div key={item.id} className="voting-card">
+              <div className="voting-card-header">
+                <div className="menu-container" ref={openMenuId === item.id ? menuRef : null}>
+                  <button
+                    className="menu-button"
+                    onClick={() => toggleMenu(item.id)}
+                    title="Menu"
+                  >
+                    ⋮
+                  </button>
+                  {openMenuId === item.id && (
+                    <div className="menu-dropdown">
+                      <button
+                        className="menu-item"
+                        onClick={() => openVoteModal(item)}
+                      >
+                        Vote
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
               <div className="voting-photo" onClick={() => setLightboxItem(item)}>
                 <img
                   src={getPhotoUrl(item.id)}
@@ -142,6 +224,57 @@ function Voting() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {voteItem && (
+        <div className="vote-modal-overlay" onClick={closeVoteModal}>
+          <div className="vote-modal" onClick={(e) => e.stopPropagation()}>
+            {voteMessage && (
+              <p className={`vote-message ${voteStatus === 'success' ? 'vote-success' : 'vote-failure'}`}>
+                {voteMessage}
+              </p>
+            )}
+            <div className="vote-modal-header">
+              <h2>Vote for Item</h2>
+              <button className="vote-modal-close" onClick={closeVoteModal}>×</button>
+            </div>
+            <div className="vote-modal-body">
+              <p className="vote-item-name">{voteItem.description}</p>
+              <label htmlFor="voterId">Your Voter ID:</label>
+              <input
+                id="voterId"
+                type="text"
+                value={voterId}
+                onChange={(e) => setVoterId(e.target.value)}
+                placeholder="Enter your voter UUID"
+                className="vote-input"
+                disabled={voteStatus === 'submitting'}
+              />
+            </div>
+            <div className="vote-modal-footer">
+              {voteStatus === 'idle' && (
+                <button className="vote-submit-button" onClick={handleVote}>
+                  Vote
+                </button>
+              )}
+              {voteStatus === 'submitting' && (
+                <button className="vote-submit-button" disabled>
+                  Voting...
+                </button>
+              )}
+              {voteStatus === 'success' && (
+                <button className="vote-submit-button vote-done" onClick={closeVoteModal}>
+                  Done
+                </button>
+              )}
+              {voteStatus === 'failure' && (
+                <button className="vote-submit-button vote-retry" onClick={handleVote}>
+                  Retry
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       )}
 

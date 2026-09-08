@@ -229,6 +229,22 @@ export function getVotingResults(topicId: string): Promise<ApiResponse<GetVoting
   return request<GetVotingResultsResponse>(`/voting?topic_id=${topicId}`)
 }
 
+export interface VoteRequest {
+  voter_id: string
+  item_id: number
+}
+
+export interface VoteResponse {
+  record_id: number
+}
+
+export function vote(data: VoteRequest): Promise<ApiResponse<VoteResponse>> {
+  return request<VoteResponse>('/voting', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
 export function getPhotoUrl(itemId: number): string {
   return `${API_BASE}/photo?item_id=${itemId}`
 }
