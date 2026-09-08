@@ -1,0 +1,178 @@
+.voting-page {
+  max-width: 1200px;
+}
+
+.voting-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  position: relative;
+  gap: 0.5rem;
+}
+
+.voting-header h1 {
+  margin: 0;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.voting-error {
+  background-color: #2a1515;
+  color: #ff6b6b;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.voting-message {
+  background-color: #152a15;
+  color: #6bff6b;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.voting-empty {
+  text-align: center;
+  color: #666;
+  padding: 2rem;
+  font-style: italic;
+}
+
+.voting-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.voting-card {
+  background: #1e1e1e;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+
+.voting-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.voting-photo {
+  width: 100%;
+  height: 200px;
+  background-color: #2a2a2a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.voting-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.2s;
+}
+
+.voting-photo:hover img {
+  transform: scale(1.05);
+}
+
+.voting-details {
+  padding: 1rem;
+}
+
+.voting-description {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.1rem;
+  color: #e0e0e0;
+}
+
+.voting-count {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  background: #2a2a2a;
+  border-radius: 4px;
+}
+
+.vote-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #4a90d9;
+  line-height: 1;
+}
+
+.vote-label {
+  font-size: 0.9rem;
+  color: #b0b0b0;
+}
+
+.voting-values {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.voting-value {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.value-key {
+  font-weight: 600;
+  color: #b0b0b0;
+}
+
+.value-value {
+  color: #e0e0e0;
+}
+
+.lightbox {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 2rem;
+}
+
+.lightbox-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+}
+
+.lightbox-content img {
+  max-width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  line-height: 1;
+}
+
+.lightbox-close:hover {
+  color: #4a90d9;
+}

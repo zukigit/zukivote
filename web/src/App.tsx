@@ -7,6 +7,7 @@ import CreateTopic from './pages/CreateTopic'
 import EditTopic from './pages/EditTopic'
 import Items from './pages/Items'
 import CreateItem from './pages/CreateItem'
+import Voting from './pages/Voting'
 import Layout from './components/Layout'
 import PrivateRoute from './components/PrivateRoute'
 
@@ -28,6 +29,7 @@ function App() {
         <Route path="/topics/edit/:id" element={<EditTopic />} />
         <Route path="/items" element={<Items />} />
         <Route path="/items/create" element={<CreateItem />} />
+        <Route path="/voting" element={<Voting />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

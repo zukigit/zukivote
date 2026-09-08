@@ -221,6 +221,14 @@ export function deleteItem(id: number): Promise<ApiResponse<DeleteItemResponse>>
   })
 }
 
+export interface GetVotingResultsResponse {
+  results: Record<number, number>
+}
+
+export function getVotingResults(topicId: string): Promise<ApiResponse<GetVotingResultsResponse>> {
+  return request<GetVotingResultsResponse>(`/voting?topic_id=${topicId}`)
+}
+
 export function getPhotoUrl(itemId: number): string {
   return `${API_BASE}/photo?item_id=${itemId}`
 }
