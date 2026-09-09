@@ -123,8 +123,6 @@ function Voting() {
         if (remaining > 0 && remaining <= 60) {
           setShowCountdown(true)
           setRemainingSeconds(remaining)
-        } else if (remaining <= 0) {
-          setShowCountdown(false)
         }
       }
     }, refreshInterval * 1000)
@@ -139,7 +137,6 @@ function Voting() {
       const now = Math.floor(Date.now() / 1000)
       const remaining = expiredAt - now
       if (remaining <= 0) {
-        setShowCountdown(false)
         setRemainingSeconds(0)
         clearInterval(countdownId)
       } else {
