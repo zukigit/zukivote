@@ -8,6 +8,7 @@ import {
   getPhotoUrl,
   type Item,
 } from '../api/client'
+import { getToken } from '../api/auth'
 import './Voting.css'
 
 type VoteStatus = 'idle' | 'submitting' | 'success' | 'failure'
@@ -33,6 +34,7 @@ function formatTimestamp(timestamp: number) {
 function Voting() {
   const navigate = useNavigate()
   const { topicId } = useParams<{ topicId: string }>()
+  const isAuthenticated = !!getToken()
   const [topicName, setTopicName] = useState('')
   const [startAt, setStartAt] = useState(0)
   const [expiredAt, setExpiredAt] = useState(0)
@@ -198,7 +200,7 @@ function Voting() {
     return (
       <div className="voting-page">
         <div className="voting-header">
-          <button className="icon" onClick={() => navigate(-1)}>←</button>
+          {isAuthenticated && <button className="icon" onClick={() => navigate(-1)}>←</button>}
           <h1>Loading...</h1>
         </div>
       </div>
@@ -208,7 +210,7 @@ function Voting() {
   return (
     <div className="voting-page">
       <div className="voting-header">
-        <button className="icon" onClick={() => navigate(-1)}>←</button>
+        {isAuthenticated && <button className="icon" onClick={() => navigate(-1)}>←</button>}
         <h1>{topicName ? `Voting: ${topicName}` : 'Voting Results'}</h1>
         <button className="icon" onClick={handleRefresh} title="Refresh" disabled={loading}>↻</button>
       </div>
