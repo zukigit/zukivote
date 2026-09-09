@@ -50,7 +50,7 @@ func (h *Handler) Register(r *mux.Router) {
 
 	voters := r.PathPrefix("/voters").Subrouter()
 	voters.Use(h.authMiddleware)
-	voters.HandleFunc("", h.GetVoters).Methods(http.MethodGet, http.MethodOptions)
+	voters.HandleFunc("", h.CreateVoter).Methods(http.MethodPost, http.MethodOptions)
 
 	voting := r.PathPrefix("/voting").Subrouter()
 	voting.HandleFunc("", h.Vote).Methods(http.MethodPost, http.MethodOptions)
@@ -237,14 +237,14 @@ func (h *Handler) GetItems(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
-func (h *Handler) GetVoters(w http.ResponseWriter, r *http.Request) {
-	result, err := h.users.GetVoters(r.Context(), r.URL.Query().Get("topic_id"))
+func (h *Handler) CreateVoter(w http.ResponseWriter, r *http.Request) {
+	result, err := h.users.CreateVoter(r.Context(), r.Body)
 	if err != nil {
 		writeServiceError(w, err)
 		return
 	}
 
-	writeJSON(w, http.StatusOK, result)
+	writeJSON(w, http.StatusCreated, result)
 }
 
 func (h *Handler) Vote(w http.ResponseWriter, r *http.Request) {

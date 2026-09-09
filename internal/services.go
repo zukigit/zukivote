@@ -530,18 +530,31 @@ func (s *Service) DeleteItem(ctx context.Context, itemIDStr string) (*DeleteItem
 	return &result, nil
 }
 
-type GetVotersResult struct {
-	Voters []string `json:"voters"`
+type CreateVoterRequest struct {
+	TopicID string `json:"topic_id"`
 }
 
-func (s *Service) GetVoters(ctx context.Context, topicIDStr string) (*GetVotersResult, error) {
+type CreateVoterResult struct {
+	VoterID string `json:"voter_id"`
+}
+
+func (s *Service) CreateVoter(ctx context.Context, body io.Reader) (*CreateVoterResult, error) {
 	ownerID, ok := userIDFromContext(ctx)
 	if !ok {
 		return nil, ErrUnauthenticated
 	}
 
+	var req CreateVoterRequest
+	if err := json.NewDecoder(body).Decode(&req); err != nil {
+		return nil, ErrInvalidJSON
+	}
+
+	if req.TopicID == "" {
+		return nil, ErrInvalidTopicParams
+	}
+
 	var topicID pgtype.UUID
-	if err := topicID.Scan(topicIDStr); err != nil {
+	if err := topicID.Scan(req.TopicID); err != nil {
 		return nil, ErrInvalidTopicParams
 	}
 
@@ -551,17 +564,12 @@ func (s *Service) GetVoters(ctx context.Context, topicIDStr string) (*GetVotersR
 		return nil, err
 	}
 
-	rows, err := q.GetVotersByTopic(ctx, topicID)
+	voterID, err := q.CreateVoter(ctx, topicID)
 	if err != nil {
-		return nil, internalError(fmt.Sprintf("GetVotersByTopic() failed, err: %s", err.Error()))
+		return nil, internalError(fmt.Sprintf("CreateVoter() failed, err: %s", err.Error()))
 	}
 
-	voters := make([]string, 0, len(rows))
-	for _, row := range rows {
-		voters = append(voters, row.String())
-	}
-
-	return &GetVotersResult{Voters: voters}, nil
+	return &CreateVoterResult{VoterID: voterID.String()}, nil
 }
 
 type TopicResult struct {

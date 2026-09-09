@@ -160,12 +160,19 @@ export function deleteTopic(id: string): Promise<ApiResponse<DeleteTopicResponse
   })
 }
 
-export interface GetVotersResponse {
-  voters: string[]
+export interface CreateVoterRequest {
+  topic_id: string
 }
 
-export function getVoters(topicId: string): Promise<ApiResponse<GetVotersResponse>> {
-  return request<GetVotersResponse>(`/voters?topic_id=${topicId}`)
+export interface CreateVoterResponse {
+  voter_id: string
+}
+
+export function createVoter(data: CreateVoterRequest): Promise<ApiResponse<CreateVoterResponse>> {
+  return request<CreateVoterResponse>('/voters', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
 }
 
 export interface ItemValue {
