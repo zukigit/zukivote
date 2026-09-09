@@ -30,6 +30,11 @@
   flex-direction: column;
   padding: 1.5rem 0;
   flex-shrink: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 .sidebar-header {
@@ -103,12 +108,17 @@
   padding: 2rem;
   background-color: #121212;
   color: #e0e0e0;
+  margin-left: 200px;
 }
 
 /* Tablet */
 @media (max-width: 1024px) {
   .sidebar {
     width: 180px;
+  }
+
+  .main-content {
+    margin-left: 180px;
   }
 }
 
@@ -155,5 +165,6 @@
   .main-content {
     padding: 1rem;
     padding-top: 4rem;
+    margin-left: 0;
   }
 }

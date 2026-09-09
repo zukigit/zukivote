@@ -1,9 +1,12 @@
 .voting-page {
-  max-width: 1200px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .voting-page-standalone {
   padding: 2rem;
+  min-height: 100vh;
+  background-color: #121212;
 }
 
 .voting-header {
