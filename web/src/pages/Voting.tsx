@@ -1,7 +1,13 @@
 import { useEffect, useState, useRef } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
-import { getItems, getVotingResults, vote, getPhotoUrl, type Item } from '../api/client'
-import { clearToken } from '../api/auth'
+import { useNavigate, useParams } from 'react-router-dom'
+import {
+  getTopicById,
+  getItems,
+  getVotingResults,
+  vote,
+  getPhotoUrl,
+  type Item,
+} from '../api/client'
 import './Voting.css'
 
 type VoteStatus = 'idle' | 'submitting' | 'success' | 'failure'
@@ -25,11 +31,10 @@ function formatTimestamp(timestamp: number) {
 
 function Voting() {
   const navigate = useNavigate()
-  const location = useLocation()
-  const state = location.state as { topicId?: string; startAt?: number; expiredAt?: number }
-  const topicId = state?.topicId
-  const startAt = state?.startAt ?? 0
-  const expiredAt = state?.expiredAt ?? 0
+  const { topicId } = useParams<{ topicId: string }>()
+  const [topicName, setTopicName] = useState('')
+  const [startAt, setStartAt] = useState(0)
+  const [expiredAt, setExpiredAt] = useState(0)
   const [items, setItems] = useState<Item[]>([])
   const [voteCounts, setVoteCounts] = useState<Record<number, number>>({})
   const [error, setError] = useState('')
@@ -53,17 +58,20 @@ function Voting() {
       return
     }
 
-    const [itemsResult, votingResult] = await Promise.all([
+    const [topicResult, itemsResult, votingResult] = await Promise.all([
+      getTopicById(topicId),
       getItems(topicId),
       getVotingResults(topicId),
     ])
 
+    if (topicResult.error) {
+      setError(topicResult.error)
+      setLoading(false)
+      return
+    }
+
     if (itemsResult.error) {
       setError(itemsResult.error)
-      if (itemsResult.status === 401) {
-        clearToken()
-        navigate('/login', { replace: true })
-      }
       setLoading(false)
       return
     }
@@ -72,6 +80,12 @@ function Voting() {
       setError(votingResult.error)
       setLoading(false)
       return
+    }
+
+    if (topicResult.data) {
+      setTopicName(topicResult.data.name)
+      setStartAt(topicResult.data.start_at)
+      setExpiredAt(topicResult.data.expired_at)
     }
 
     setItems(itemsResult.data?.items ?? [])
@@ -144,17 +158,20 @@ function Voting() {
     setLoading(true)
     setError('')
 
-    const [itemsResult, votingResult] = await Promise.all([
+    const [topicResult, itemsResult, votingResult] = await Promise.all([
+      getTopicById(topicId!),
       getItems(topicId!),
       getVotingResults(topicId!),
     ])
 
+    if (topicResult.error) {
+      setError(topicResult.error)
+      setLoading(false)
+      return
+    }
+
     if (itemsResult.error) {
       setError(itemsResult.error)
-      if (itemsResult.status === 401) {
-        clearToken()
-        navigate('/login', { replace: true })
-      }
       setLoading(false)
       return
     }
@@ -163,6 +180,12 @@ function Voting() {
       setError(votingResult.error)
       setLoading(false)
       return
+    }
+
+    if (topicResult.data) {
+      setTopicName(topicResult.data.name)
+      setStartAt(topicResult.data.start_at)
+      setExpiredAt(topicResult.data.expired_at)
     }
 
     setItems(itemsResult.data?.items ?? [])
@@ -174,7 +197,7 @@ function Voting() {
     return (
       <div className="voting-page">
         <div className="voting-header">
-          <button className="icon" onClick={() => navigate('/topics')}>←</button>
+          <button className="icon" onClick={() => navigate(-1)}>←</button>
           <h1>Loading...</h1>
         </div>
       </div>
@@ -184,8 +207,8 @@ function Voting() {
   return (
     <div className="voting-page">
       <div className="voting-header">
-        <button className="icon" onClick={() => navigate('/topics')}>←</button>
-        <h1>Voting Results</h1>
+        <button className="icon" onClick={() => navigate(-1)}>←</button>
+        <h1>{topicName ? `Voting: ${topicName}` : 'Voting Results'}</h1>
         <button className="icon" onClick={handleRefresh} title="Refresh" disabled={loading}>↻</button>
       </div>
 

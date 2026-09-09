@@ -578,6 +578,47 @@ type GetTopicsResult struct {
 	Topics []TopicResult `json:"topics"`
 }
 
+func (s *Service) GetTopicByIdPublic(ctx context.Context, topicIDStr string) (*TopicResult, error) {
+	if topicIDStr == "" {
+		return nil, ErrInvalidTopicParams
+	}
+
+	var topicID pgtype.UUID
+	if err := topicID.Scan(topicIDStr); err != nil {
+		return nil, ErrInvalidTopicParams
+	}
+
+	q := sqlc.New(s.pool)
+
+	topic, err := q.GetTopicById(ctx, topicID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrTopicNotFound
+		}
+		return nil, internalError(fmt.Sprintf("GetTopicById() failed, err: %s", err.Error()))
+	}
+
+	voterCount, err := q.CountVotersByTopic(ctx, topicID)
+	if err != nil {
+		return nil, internalError(fmt.Sprintf("CountVotersByTopic() failed, err: %s", err.Error()))
+	}
+
+	itemCount, err := q.CountItemsByTopic(ctx, topicID)
+	if err != nil {
+		return nil, internalError(fmt.Sprintf("CountItemsByTopic() failed, err: %s", err.Error()))
+	}
+
+	return &TopicResult{
+		ID:         topic.ID.String(),
+		Name:       topic.Name,
+		StartAt:    topic.StartAt,
+		ExpiredAt:  topic.ExpiredAt,
+		CreatedAt:  topic.CreatedAt,
+		VoterCount: voterCount,
+		ItemCount:  itemCount,
+	}, nil
+}
+
 func (s *Service) GetTopics(ctx context.Context) (*GetTopicsResult, error) {
 	ownerID, ok := userIDFromContext(ctx)
 	if !ok {

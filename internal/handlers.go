@@ -37,12 +37,14 @@ func (h *Handler) Register(r *mux.Router) {
 	protected.HandleFunc("/{id}", h.EditTopic).Methods(http.MethodPut, http.MethodOptions)
 	protected.HandleFunc("/{id}", h.DeleteTopic).Methods(http.MethodDelete, http.MethodOptions)
 
+	r.HandleFunc("/topics/{id}", h.GetTopicById).Methods(http.MethodGet, http.MethodOptions)
+
 	r.HandleFunc("/photo", h.GetItemPhoto).Methods(http.MethodGet, http.MethodOptions)
 
 	items := r.PathPrefix("/items").Subrouter()
+	items.HandleFunc("", h.GetItems).Methods(http.MethodGet, http.MethodOptions)
 	items.Use(h.authMiddleware)
 	items.HandleFunc("", h.CreateItem).Methods(http.MethodPost, http.MethodOptions)
-	items.HandleFunc("", h.GetItems).Methods(http.MethodGet, http.MethodOptions)
 	items.HandleFunc("/{id}", h.DeleteItem).Methods(http.MethodDelete, http.MethodOptions)
 
 	voters := r.PathPrefix("/voters").Subrouter()
@@ -203,6 +205,19 @@ func (h *Handler) CreateItem(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) GetTopics(w http.ResponseWriter, r *http.Request) {
 	result, err := h.users.GetTopics(r.Context())
+	if err != nil {
+		writeServiceError(w, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, result)
+}
+
+func (h *Handler) GetTopicById(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	topicID := vars["id"]
+
+	result, err := h.users.GetTopicByIdPublic(r.Context(), topicID)
 	if err != nil {
 		writeServiceError(w, err)
 		return

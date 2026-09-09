@@ -115,6 +115,26 @@ Authorization: Bearer <jwt>
 
 ---
 
+### GET /topics/{id}
+
+Get a specific topic by ID. No authentication required.
+
+**Responses**
+
+| Status | Body |
+| ------ | ---- |
+| 200 OK | `{ "id": "<uuid>", "name": "my-topic", "start_at": 1700000000, "expired_at": 1700086400, "created_at": 1700000000, "voter_count": 3, "item_count": 5 }` |
+| 400 Bad Request | `{ "error": "invalid topic params" }` |
+| 404 Not Found | `{ "error": "topic not found" }` |
+| 500 Internal Server Error | `{ "error": "internal error" }` |
+
+**Notes**
+
+- Returns topic details without requiring authentication.
+- Used by the public voting page to get topic information.
+
+---
+
 ### PUT /topics/{id}
 
 Update an existing topic. Requires authentication.
@@ -227,13 +247,7 @@ Authorization: Bearer <jwt>
 
 ### GET /items
 
-List items of a topic. Requires authentication.
-
-**Headers**
-
-```
-Authorization: Bearer <jwt>
-```
+List items of a topic. No authentication required.
 
 **Query parameters**
 
@@ -247,15 +261,12 @@ Authorization: Bearer <jwt>
 | ------ | ---- |
 | 200 OK | `{ "items": [{ "id": 1, "description": "...", "values": [{ "id": 1, "key": "color", "value": "red" }] }, ...] }` |
 | 400 Bad Request | `{ "error": "invalid item params" }` |
-| 401 Unauthorized | `{ "error": "invalid token" }` / `{ "error": "unauthenticated" }` |
-| 403 Forbidden | `{ "error": "forbidden" }` |
-| 404 Not Found | `{ "error": "topic not found" }` |
 | 500 Internal Server Error | `{ "error": "internal error" }` |
 
 **Notes**
 
-- Only the owner of the topic can list its items.
 - Returns an empty `items` array when the topic has no items.
+- No authentication required for public access.
 
 ---
 

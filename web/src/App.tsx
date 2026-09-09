@@ -16,6 +16,7 @@ function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/voting/:topicId" element={<Voting />} />
       <Route
         element={
           <PrivateRoute>
@@ -29,7 +30,6 @@ function App() {
         <Route path="/topics/edit/:id" element={<EditTopic />} />
         <Route path="/items" element={<Items />} />
         <Route path="/items/create" element={<CreateItem />} />
-        <Route path="/voting" element={<Voting />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

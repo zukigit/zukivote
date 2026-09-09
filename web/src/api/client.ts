@@ -136,6 +136,10 @@ export function getTopics(): Promise<ApiResponse<GetTopicsResponse>> {
   return request<GetTopicsResponse>('/topics')
 }
 
+export function getTopicById(topicId: string): Promise<ApiResponse<Topic>> {
+  return request<Topic>(`/topics/${topicId}`)
+}
+
 export function createTopic(data: CreateTopicRequest): Promise<ApiResponse<CreateTopicResponse>> {
   return request<CreateTopicResponse>('/topics', {
     method: 'POST',
