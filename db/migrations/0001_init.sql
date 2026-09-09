@@ -14,8 +14,10 @@ CREATE TABLE topics (
 );
 
 CREATE TABLE voters (
-    id       UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    topic_id UUID NOT NULL REFERENCES topics(id) ON DELETE CASCADE
+    id        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    topic_id  UUID NOT NULL REFERENCES topics(id) ON DELETE CASCADE,
+    user_name VARCHAR NOT NULL,
+    UNIQUE (user_name, topic_id)
 );
 
 CREATE TABLE items (

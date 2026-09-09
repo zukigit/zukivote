@@ -45,6 +45,7 @@ type User struct {
 }
 
 type Voter struct {
-	ID      pgtype.UUID `json:"id"`
-	TopicID pgtype.UUID `json:"topic_id"`
+	ID       pgtype.UUID `json:"id"`
+	TopicID  pgtype.UUID `json:"topic_id"`
+	UserName string      `json:"user_name"`
 }

@@ -4,8 +4,8 @@ VALUES ($1, $2, $3, $4, $5)
 RETURNING id;
 
 -- name: CreateVoter :one
-INSERT INTO voters (topic_id)
-VALUES ($1)
+INSERT INTO voters (topic_id, user_name)
+VALUES ($1, $2)
 RETURNING id;
 
 -- name: GetTopicsByOwner :many
@@ -83,6 +83,11 @@ FROM items
 WHERE id = $1;
 
 -- name: GetVotersByTopic :many
-SELECT id
+SELECT id, user_name
+FROM voters
+WHERE topic_id = $1;
+
+-- name: GetVoterUserNamesByTopic :many
+SELECT user_name
 FROM voters
 WHERE topic_id = $1;

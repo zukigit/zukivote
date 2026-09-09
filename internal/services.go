@@ -67,6 +67,7 @@ var (
 	ErrVotingExpired           = &ServiceError{StatusCode: http.StatusBadRequest, Message: "voting has expired"}
 	ErrVoterItemMismatch       = &ServiceError{StatusCode: http.StatusBadRequest, Message: "voter and item do not belong to the same topic"}
 	ErrAlreadyVoted            = &ServiceError{StatusCode: http.StatusConflict, Message: "voter has already voted for this item"}
+	ErrVoterUserNameTaken      = &ServiceError{StatusCode: http.StatusConflict, Message: "voter user name already exists in this topic"}
 )
 
 const jwtTTL = 24 * time.Hour
@@ -335,7 +336,11 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (*CreateTopic
 	result.TopicID = topicID.String()
 
 	for i := int32(0); i < req.VoterCount; i++ {
-		voterID, err := q.CreateVoter(ctx, topicID)
+		userName := fmt.Sprintf("voter_%d", i+1)
+		voterID, err := q.CreateVoter(ctx, sqlc.CreateVoterParams{
+			TopicID:  topicID,
+			UserName: userName,
+		})
 		if err != nil {
 			return nil, internalError(fmt.Sprintf("CreateVoter() failed, %s", err.Error()))
 		}
@@ -531,7 +536,8 @@ func (s *Service) DeleteItem(ctx context.Context, itemIDStr string) (*DeleteItem
 }
 
 type CreateVoterRequest struct {
-	TopicID string `json:"topic_id"`
+	TopicID  string `json:"topic_id"`
+	UserName string `json:"user_name"`
 }
 
 type CreateVoterResult struct {
@@ -549,7 +555,7 @@ func (s *Service) CreateVoter(ctx context.Context, body io.Reader) (*CreateVoter
 		return nil, ErrInvalidJSON
 	}
 
-	if req.TopicID == "" {
+	if req.TopicID == "" || req.UserName == "" {
 		return nil, ErrInvalidTopicParams
 	}
 
@@ -564,12 +570,52 @@ func (s *Service) CreateVoter(ctx context.Context, body io.Reader) (*CreateVoter
 		return nil, err
 	}
 
-	voterID, err := q.CreateVoter(ctx, topicID)
+	voterID, err := q.CreateVoter(ctx, sqlc.CreateVoterParams{
+		TopicID:  topicID,
+		UserName: req.UserName,
+	})
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return nil, ErrVoterUserNameTaken
+		}
 		return nil, internalError(fmt.Sprintf("CreateVoter() failed, err: %s", err.Error()))
 	}
 
 	return &CreateVoterResult{VoterID: voterID.String()}, nil
+}
+
+type GetVoterUserNamesResult struct {
+	UserNames []string `json:"user_names"`
+}
+
+func (s *Service) GetVoterUserNames(ctx context.Context, topicIDStr string) (*GetVoterUserNamesResult, error) {
+	ownerID, ok := userIDFromContext(ctx)
+	if !ok {
+		return nil, ErrUnauthenticated
+	}
+
+	if topicIDStr == "" {
+		return nil, ErrInvalidTopicParams
+	}
+
+	var topicID pgtype.UUID
+	if err := topicID.Scan(topicIDStr); err != nil {
+		return nil, ErrInvalidTopicParams
+	}
+
+	q := sqlc.New(s.pool)
+
+	if err := checkTopicOwnership(ctx, q, topicID, ownerID); err != nil {
+		return nil, err
+	}
+
+	userNames, err := q.GetVoterUserNamesByTopic(ctx, topicID)
+	if err != nil {
+		return nil, internalError(fmt.Sprintf("GetVoterUserNamesByTopic() failed, err: %s", err.Error()))
+	}
+
+	return &GetVoterUserNamesResult{UserNames: userNames}, nil
 }
 
 type TopicResult struct {

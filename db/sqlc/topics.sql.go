@@ -102,13 +102,18 @@ func (q *Queries) CreateTopic(ctx context.Context, arg CreateTopicParams) (pgtyp
 }
 
 const createVoter = `-- name: CreateVoter :one
-INSERT INTO voters (topic_id)
-VALUES ($1)
+INSERT INTO voters (topic_id, user_name)
+VALUES ($1, $2)
 RETURNING id
 `
 
-func (q *Queries) CreateVoter(ctx context.Context, topicID pgtype.UUID) (pgtype.UUID, error) {
-	row := q.db.QueryRow(ctx, createVoter, topicID)
+type CreateVoterParams struct {
+	TopicID  pgtype.UUID `json:"topic_id"`
+	UserName string      `json:"user_name"`
+}
+
+func (q *Queries) CreateVoter(ctx context.Context, arg CreateVoterParams) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, createVoter, arg.TopicID, arg.UserName)
 	var id pgtype.UUID
 	err := row.Scan(&id)
 	return id, err
@@ -310,24 +315,55 @@ func (q *Queries) GetTopicsByOwner(ctx context.Context, ownerID pgtype.UUID) ([]
 }
 
 const getVotersByTopic = `-- name: GetVotersByTopic :many
-SELECT id
+SELECT id, user_name
 FROM voters
 WHERE topic_id = $1
 `
 
-func (q *Queries) GetVotersByTopic(ctx context.Context, topicID pgtype.UUID) ([]pgtype.UUID, error) {
+type GetVotersByTopicRow struct {
+	ID       pgtype.UUID `json:"id"`
+	UserName string      `json:"user_name"`
+}
+
+func (q *Queries) GetVotersByTopic(ctx context.Context, topicID pgtype.UUID) ([]GetVotersByTopicRow, error) {
 	rows, err := q.db.Query(ctx, getVotersByTopic, topicID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []pgtype.UUID
+	var items []GetVotersByTopicRow
 	for rows.Next() {
-		var id pgtype.UUID
-		if err := rows.Scan(&id); err != nil {
+		var i GetVotersByTopicRow
+		if err := rows.Scan(&i.ID, &i.UserName); err != nil {
 			return nil, err
 		}
-		items = append(items, id)
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getVoterUserNamesByTopic = `-- name: GetVoterUserNamesByTopic :many
+SELECT user_name
+FROM voters
+WHERE topic_id = $1
+`
+
+func (q *Queries) GetVoterUserNamesByTopic(ctx context.Context, topicID pgtype.UUID) ([]string, error) {
+	rows, err := q.db.Query(ctx, getVoterUserNamesByTopic, topicID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var user_name string
+		if err := rows.Scan(&user_name); err != nil {
+			return nil, err
+		}
+		items = append(items, user_name)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

@@ -298,9 +298,48 @@ Authorization: Bearer <jwt>
 
 ---
 
+### POST /voters
+
+Create a new voter for a topic. Requires authentication.
+
+**Headers**
+
+```
+Authorization: Bearer <jwt>
+```
+
+**Request body**
+
+```json
+{
+  "topic_id": "<uuid>",
+  "user_name": "voter1"
+}
+```
+
+**Responses**
+
+| Status | Body |
+| ------ | ---- |
+| 201 Created | `{ "voter_id": "<uuid>" }` |
+| 400 Bad Request | `{ "error": "invalid request body" }` / `{ "error": "invalid topic params" }` |
+| 401 Unauthorized | `{ "error": "invalid token" }` / `{ "error": "unauthenticated" }` |
+| 403 Forbidden | `{ "error": "forbidden" }` |
+| 404 Not Found | `{ "error": "topic not found" }` |
+| 409 Conflict | `{ "error": "voter user name already exists in this topic" }` |
+| 500 Internal Server Error | `{ "error": "internal error" }` |
+
+**Notes**
+
+- Only the owner of the topic can create voters.
+- `user_name` must be unique within the topic.
+- Returns the created voter ID.
+
+---
+
 ### GET /voters
 
-Get all voter IDs for a topic. Requires authentication.
+Get all voter user names for a topic. Requires authentication.
 
 **Headers**
 
@@ -318,7 +357,7 @@ Authorization: Bearer <jwt>
 
 | Status | Body |
 | ------ | ---- |
-| 200 OK | `{ "voters": ["<uuid>", "<uuid>", ...] }` |
+| 200 OK | `{ "user_names": ["voter1", "voter2", ...] }` |
 | 400 Bad Request | `{ "error": "invalid topic params" }` |
 | 401 Unauthorized | `{ "error": "invalid token" }` / `{ "error": "unauthenticated" }` |
 | 403 Forbidden | `{ "error": "forbidden" }` |
@@ -327,7 +366,7 @@ Authorization: Bearer <jwt>
 **Notes**
 
 - Only the owner of the topic can get its voters.
-- Returns an array of voter UUIDs.
+- Returns an array of voter user names.
 
 ---
 
