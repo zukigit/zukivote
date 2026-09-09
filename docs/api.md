@@ -68,8 +68,7 @@ Authorization: Bearer <jwt>
 {
   "name": "my-topic",
   "start_at": 1700000000,
-  "expired_at": 1700086400,
-  "voter_count": 3
+  "expired_at": 1700086400
 }
 ```
 
@@ -77,7 +76,7 @@ Authorization: Bearer <jwt>
 
 | Status | Body |
 | ------ | ---- |
-| 201 Created | `{ "topic_id": "<uuid>", "voters": ["<uuid>", ...] }` |
+| 201 Created | `{ "topic_id": "<uuid>" }` |
 | 400 Bad Request | `{ "error": "invalid request body" }` / `{ "error": "invalid topic params" }` |
 | 401 Unauthorized | `{ "error": "invalid token" }` / `{ "error": "unauthenticated" }` |
 | 409 Conflict | `{ "error": "topic name is already taken" }` |
@@ -87,7 +86,6 @@ Authorization: Bearer <jwt>
 
 - `start_at` and `expired_at` are unix timestamps.
 - The authenticated user becomes the topic owner (`owner_id`).
-- `voter_count` voters are created along with the topic.
 
 ---
 

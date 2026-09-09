@@ -36,7 +36,7 @@ function EditTopic() {
     fetchTopic()
   }, [id, navigate])
 
-  async function handleSubmit(data: { name: string; start_at: Date | null; expired_at: Date | null; voter_count: string }) {
+  async function handleSubmit(data: { name: string; start_at: Date | null; expired_at: Date | null }) {
     if (!id || !data.start_at || !data.expired_at) {
       throw new Error('Invalid data')
     }
@@ -86,8 +86,6 @@ function EditTopic() {
       initialName={topic.name}
       initialStartAt={toDate(topic.start_at)}
       initialExpiredAt={toDate(topic.expired_at)}
-      initialVoterCount={topic.voter_count.toString()}
-      disableVoterCount={true}
       successMessage={successMessage}
       onSubmit={handleSubmit}
       submitLabel="Update Topic"

@@ -240,10 +240,9 @@ type credentialsRequest struct {
 }
 
 type CreateTopicRequest struct {
-	Name       string `json:"name"`
-	StartAt    int32  `json:"start_at"`
-	ExpiredAt  int32  `json:"expired_at"`
-	VoterCount int32  `json:"voter_count"`
+	Name      string `json:"name"`
+	StartAt   int32  `json:"start_at"`
+	ExpiredAt int32  `json:"expired_at"`
 }
 
 type EditTopicRequest struct {
@@ -273,8 +272,7 @@ func validateTopicRequest(name string, startAt, expiredAt int32) error {
 }
 
 type CreateTopicResult struct {
-	TopicID string   `json:"topic_id"`
-	Voters  []string `json:"voters"`
+	TopicID string `json:"topic_id"`
 }
 
 func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (*CreateTopicResult, error) {
@@ -290,7 +288,7 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (*CreateTopic
 		return nil, ErrInvalidJSON
 	}
 
-	if ownerID == "" || req.VoterCount <= 0 {
+	if ownerID == "" {
 		return nil, ErrInvalidTopicParams
 	}
 
@@ -334,18 +332,6 @@ func (s *Service) CreateTopic(ctx context.Context, body io.Reader) (*CreateTopic
 	}
 
 	result.TopicID = topicID.String()
-
-	for i := int32(0); i < req.VoterCount; i++ {
-		userName := fmt.Sprintf("voter_%d", i+1)
-		voterID, err := q.CreateVoter(ctx, sqlc.CreateVoterParams{
-			TopicID:  topicID,
-			UserName: userName,
-		})
-		if err != nil {
-			return nil, internalError(fmt.Sprintf("CreateVoter() failed, %s", err.Error()))
-		}
-		result.Voters = append(result.Voters, voterID.String())
-	}
 
 	if err := tx.Commit(ctx); err != nil {
 		return nil, internalError(err.Error())

@@ -10,11 +10,9 @@ interface TopicFormProps {
   initialName?: string
   initialStartAt?: Date | null
   initialExpiredAt?: Date | null
-  initialVoterCount?: string
-  disableVoterCount?: boolean
   clearOnSuccess?: boolean
   successMessage?: string
-  onSubmit: (data: { name: string; start_at: Date | null; expired_at: Date | null; voter_count: string }) => Promise<void>
+  onSubmit: (data: { name: string; start_at: Date | null; expired_at: Date | null }) => Promise<void>
   submitLabel: string
 }
 
@@ -23,8 +21,6 @@ function TopicForm({
   initialName = '',
   initialStartAt = null,
   initialExpiredAt = null,
-  initialVoterCount = '',
-  disableVoterCount = false,
   clearOnSuccess = false,
   successMessage = '',
   onSubmit,
@@ -34,7 +30,6 @@ function TopicForm({
   const [name, setName] = useState(initialName)
   const [startAt, setStartAt] = useState<Date | null>(initialStartAt)
   const [expiredAt, setExpiredAt] = useState<Date | null>(initialExpiredAt)
-  const [voterCount, setVoterCount] = useState(initialVoterCount)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
@@ -52,12 +47,11 @@ function TopicForm({
     setSubmitting(true)
 
     try {
-      await onSubmit({ name, start_at: startAt, expired_at: expiredAt, voter_count: voterCount })
+      await onSubmit({ name, start_at: startAt, expired_at: expiredAt })
       if (clearOnSuccess) {
         setName('')
         setStartAt(null)
         setExpiredAt(null)
-        setVoterCount('')
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
@@ -117,19 +111,6 @@ function TopicForm({
             required
             shouldCloseOnSelect={true}
             popperPlacement="bottom-start"
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="voterCount">Voter Count</label>
-          <input
-            id="voterCount"
-            type="number"
-            min="1"
-            value={voterCount}
-            onChange={(e) => setVoterCount(e.target.value)}
-            placeholder="3"
-            required
-            disabled={disableVoterCount}
           />
         </div>
         <button type="submit" className="topic-submit-button" disabled={submitting}>

@@ -92,12 +92,10 @@ export interface CreateTopicRequest {
   name: string
   start_at: number
   expired_at: number
-  voter_count: number
 }
 
 export interface CreateTopicResponse {
   topic_id: string
-  voters: string[]
 }
 
 export interface UpdateTopicRequest {
