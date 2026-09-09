@@ -200,7 +200,7 @@ function Voting() {
 
   if (loading) {
     const content = (
-      <div className="voting-page">
+      <div className={`voting-page${!isAuthenticated ? ' voting-page-standalone' : ''}`}>
         <div className="voting-header">
           {isAuthenticated && <button className="icon" onClick={() => navigate(-1)}>←</button>}
           <h1>Loading...</h1>
@@ -223,10 +223,10 @@ function Voting() {
   }
 
   const content = (
-    <div className="voting-page">
+    <div className={`voting-page${!isAuthenticated ? ' voting-page-standalone' : ''}`}>
       <div className="voting-header">
         {isAuthenticated && <button className="icon" onClick={() => navigate(-1)}>←</button>}
-        <h1>{topicName ? `Voting: ${topicName}` : 'Voting Results'}</h1>
+        <h1>Voting</h1>
         <button className="icon" onClick={handleRefresh} title="Refresh" disabled={loading}>↻</button>
       </div>
 
@@ -235,19 +235,13 @@ function Voting() {
       {votingStatus && (
         <div className={`voting-status voting-status-${votingStatus}`}>
           {votingStatus === 'not-started' && (
-            <>
-              <span className="voting-status-label">Voting starts at:</span>
-              <span className="voting-status-time">{formatTimestamp(startAt)}</span>
-            </>
+            <span className="voting-status-label">Not started yet, will start at {formatTimestamp(startAt)}</span>
           )}
           {votingStatus === 'active' && (
-            <>
-              <span className="voting-status-label">Voting ends at:</span>
-              <span className="voting-status-time">{formatTimestamp(expiredAt)}</span>
-            </>
+            <span className="voting-status-label">Started, will end at {formatTimestamp(expiredAt)}</span>
           )}
           {votingStatus === 'ended' && (
-            <span className="voting-status-label">Voting has ended</span>
+            <span className="voting-status-label">Ended at {formatTimestamp(expiredAt)}</span>
           )}
         </div>
       )}

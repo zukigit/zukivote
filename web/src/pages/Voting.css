@@ -2,6 +2,10 @@
   max-width: 1200px;
 }
 
+.voting-page-standalone {
+  padding: 2rem;
+}
+
 .voting-header {
   display: flex;
   align-items: center;
