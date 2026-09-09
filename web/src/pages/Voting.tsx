@@ -9,6 +9,7 @@ import {
   type Item,
 } from '../api/client'
 import { getToken } from '../api/auth'
+import Sidebar from '../components/Sidebar'
 import './Voting.css'
 
 type VoteStatus = 'idle' | 'submitting' | 'success' | 'failure'
@@ -35,6 +36,7 @@ function Voting() {
   const navigate = useNavigate()
   const { topicId } = useParams<{ topicId: string }>()
   const isAuthenticated = !!getToken()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [topicName, setTopicName] = useState('')
   const [startAt, setStartAt] = useState(0)
   const [expiredAt, setExpiredAt] = useState(0)
@@ -197,7 +199,7 @@ function Voting() {
   }
 
   if (loading) {
-    return (
+    const content = (
       <div className="voting-page">
         <div className="voting-header">
           {isAuthenticated && <button className="icon" onClick={() => navigate(-1)}>←</button>}
@@ -205,9 +207,22 @@ function Voting() {
         </div>
       </div>
     )
+
+    if (isAuthenticated) {
+      return (
+        <div className="layout">
+          <button className="menu-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>☰</button>
+          {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
+          <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+          <main className="main-content">{content}</main>
+        </div>
+      )
+    }
+
+    return content
   }
 
-  return (
+  const content = (
     <div className="voting-page">
       <div className="voting-header">
         {isAuthenticated && <button className="icon" onClick={() => navigate(-1)}>←</button>}
@@ -359,6 +374,19 @@ function Voting() {
       )}
     </div>
   )
+
+  if (isAuthenticated) {
+    return (
+      <div className="layout">
+        <button className="menu-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>☰</button>
+        {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
+        <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <main className="main-content">{content}</main>
+      </div>
+    )
+  }
+
+  return content
 }
 
 export default Voting

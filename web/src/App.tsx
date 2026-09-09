@@ -30,7 +30,6 @@ function App() {
         <Route path="/topics/edit/:id" element={<EditTopic />} />
         <Route path="/items" element={<Items />} />
         <Route path="/items/create" element={<CreateItem />} />
-        <Route path="/topics/:topicId/voting" element={<Voting />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
