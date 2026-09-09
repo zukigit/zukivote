@@ -109,12 +109,12 @@
 }
 
 .menu-item-delete {
-  color: #ff6b6b;
+  color: #ff6b6b !important;
+  background-color: #3a1515 !important;
 }
 
 .menu-item-delete:hover {
-  background-color: #5a1a1a;
-  color: #ff6b6b;
+  background-color: #5a1a1a !important;
 }
 
 .topics-table {
