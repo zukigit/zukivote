@@ -54,6 +54,10 @@ function Voting() {
   const [voteStatus, setVoteStatus] = useState<VoteStatus>('idle')
   const [voteMessage, setVoteMessage] = useState('')
 
+  // Auto refresh state
+  const [autoRefresh, setAutoRefresh] = useState(false)
+  const [refreshInterval, setRefreshInterval] = useState(5)
+
   const votingStatus = getVotingStatus(startAt, expiredAt)
 
   async function fetchData() {
@@ -101,6 +105,16 @@ function Voting() {
   useEffect(() => {
     fetchData()
   }, [topicId])
+
+  useEffect(() => {
+    if (!autoRefresh || votingStatus !== 'active') return
+
+    const intervalId = setInterval(() => {
+      fetchData()
+    }, refreshInterval * 1000)
+
+    return () => clearInterval(intervalId)
+  }, [autoRefresh, refreshInterval, votingStatus, topicId])
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -203,6 +217,7 @@ function Voting() {
       <div className={`voting-page${!isAuthenticated ? ' voting-page-standalone' : ''}`}>
         <div className="voting-header">
           {isAuthenticated && <button className="icon" onClick={() => navigate(-1)}>←</button>}
+          <button className="icon" onClick={handleRefresh} title="Refresh" disabled>↻</button>
           <h1>Loading...</h1>
         </div>
       </div>
@@ -226,8 +241,36 @@ function Voting() {
     <div className={`voting-page${!isAuthenticated ? ' voting-page-standalone' : ''}`}>
       <div className="voting-header">
         {isAuthenticated && <button className="icon" onClick={() => navigate(-1)}>←</button>}
-        <h1>Voting</h1>
         <button className="icon" onClick={handleRefresh} title="Refresh" disabled={loading}>↻</button>
+        <div className="auto-refresh-controls">
+          <button
+            className={`icon auto-refresh-toggle ${autoRefresh ? 'active' : ''}`}
+            onClick={() => setAutoRefresh(!autoRefresh)}
+            title={autoRefresh ? 'Disable auto refresh' : 'Enable auto refresh'}
+          >
+            {autoRefresh ? '⏸' : '▶'}
+          </button>
+          {autoRefresh && (
+            <div className="interval-controls">
+              <button
+                className="icon interval-btn"
+                onClick={() => setRefreshInterval(Math.max(5, refreshInterval - 1))}
+                title="Decrease interval"
+              >
+                -
+              </button>
+              <span className="interval-value">{refreshInterval}s</span>
+              <button
+                className="icon interval-btn"
+                onClick={() => setRefreshInterval(refreshInterval + 1)}
+                title="Increase interval"
+              >
+                +
+              </button>
+            </div>
+          )}
+        </div>
+        <h1>Voting</h1>
       </div>
 
       {error && <p className="voting-error">{error}</p>}

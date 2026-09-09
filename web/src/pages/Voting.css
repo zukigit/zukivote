@@ -21,6 +21,45 @@
   transform: translateX(-50%);
 }
 
+.auto-refresh-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.auto-refresh-toggle {
+  font-size: 0.8rem !important;
+  padding: 0.25rem 0.4rem !important;
+}
+
+.auto-refresh-toggle.active {
+  background-color: #152a15;
+  color: #6bff6b;
+}
+
+.interval-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background-color: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 4px;
+  padding: 0.15rem 0.25rem;
+}
+
+.interval-btn {
+  font-size: 0.8rem !important;
+  padding: 0.15rem 0.3rem !important;
+  min-width: 1.2rem;
+}
+
+.interval-value {
+  font-size: 0.8rem;
+  color: #e0e0e0;
+  min-width: 2rem;
+  text-align: center;
+}
+
 .voting-error {
   background-color: #2a1515;
   color: #ff6b6b;
