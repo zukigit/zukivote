@@ -158,7 +158,7 @@ Authorization: Bearer <jwt>
 | Status | Body |
 | ------ | ---- |
 | 200 OK | `{ "message": "topic updated" }` |
-| 400 Bad Request | `{ "error": "invalid request body" }` / `{ "error": "invalid topic params" }` / `{ "error": "Start Time must be greater than now" }` / `{ "error": "End Time must be at least 15 minutes from now" }` / `{ "error": "Start Time must be before End Time" }` / `{ "error": "cannot modify a topic that has already started" }` |
+| 400 Bad Request | `{ "error": "invalid request body" }` / `{ "error": "invalid topic params" }` / `{ "error": "Start Time must be greater than now" }` / `{ "error": "End Time must be at least 15 minutes from now" }` / `{ "error": "Start Time must be before End Time" }` / `{ "error": "topic has started already" }` |
 | 401 Unauthorized | `{ "error": "invalid token" }` / `{ "error": "unauthenticated" }` |
 | 403 Forbidden | `{ "error": "forbidden" }` |
 | 404 Not Found | `{ "error": "topic not found" }` |
@@ -229,7 +229,7 @@ Authorization: Bearer <jwt>
 | Status | Body |
 | ------ | ---- |
 | 201 Created | `{ "item_id": 1, "photo_url": "/app/photos/1.jpg" }` |
-| 400 Bad Request | `{ "error": "invalid form data" }` / `{ "error": "invalid item params" }` / `{ "error": "item value key and value are required" }` / `{ "error": "photo too large" }` |
+| 400 Bad Request | `{ "error": "invalid form data" }` / `{ "error": "invalid item params" }` / `{ "error": "item value key and value are required" }` / `{ "error": "photo too large" }` / `{ "error": "topic has started already" }` |
 | 401 Unauthorized | `{ "error": "invalid token" }` / `{ "error": "unauthenticated" }` |
 | 403 Forbidden | `{ "error": "forbidden" }` |
 | 404 Not Found | `{ "error": "topic not found" }` |
@@ -239,6 +239,7 @@ Authorization: Bearer <jwt>
 **Notes**
 
 - Only the owner of the topic can add items.
+- Cannot add items after voting has started.
 - The photo is required and saved under `/app/photos/`; its path is returned as `photo_url`.
 
 ---
@@ -320,7 +321,7 @@ Authorization: Bearer <jwt>
 | Status | Body |
 | ------ | ---- |
 | 201 Created | `{ "voter_id": "<uuid>" }` |
-| 400 Bad Request | `{ "error": "invalid request body" }` / `{ "error": "invalid topic params" }` |
+| 400 Bad Request | `{ "error": "invalid request body" }` / `{ "error": "invalid topic params" }` / `{ "error": "cannot add a topic that has already started" }` |
 | 401 Unauthorized | `{ "error": "invalid token" }` / `{ "error": "unauthenticated" }` |
 | 403 Forbidden | `{ "error": "forbidden" }` |
 | 404 Not Found | `{ "error": "topic not found" }` |
@@ -330,6 +331,7 @@ Authorization: Bearer <jwt>
 **Notes**
 
 - Only the owner of the topic can create voters.
+- Cannot add voters after voting has started.
 - `user_name` must be unique within the topic.
 - Returns the created voter ID.
 

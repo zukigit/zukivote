@@ -59,7 +59,7 @@ var (
 	ErrExpiredAtInvalid        = &ServiceError{StatusCode: http.StatusBadRequest, Message: "End Time must be at least 15 minutes from now"}
 	ErrStartAtInvalid          = &ServiceError{StatusCode: http.StatusBadRequest, Message: "Start Time must be greater than now"}
 	ErrStartAfterEnd           = &ServiceError{StatusCode: http.StatusBadRequest, Message: "Start Time must be before End Time"}
-	ErrTopicAlreadyStarted     = &ServiceError{StatusCode: http.StatusBadRequest, Message: "cannot modify a topic that has already started"}
+	ErrTopicAlreadyStarted     = &ServiceError{StatusCode: http.StatusBadRequest, Message: "topic has started already"}
 	ErrNewStartLessThanCurrent = &ServiceError{StatusCode: http.StatusBadRequest, Message: "new start time cannot be earlier than current start time"}
 	ErrTopicActive             = &ServiceError{StatusCode: http.StatusBadRequest, Message: "cannot delete a topic that has started and not yet ended"}
 	ErrItemDescriptionTaken    = &ServiceError{StatusCode: http.StatusConflict, Message: "item description already exists in this topic"}
@@ -557,6 +557,19 @@ func (s *Service) CreateVoter(ctx context.Context, body io.Reader) (*CreateVoter
 		return nil, err
 	}
 
+	topic, err := q.GetTopicById(ctx, topicID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrTopicNotFound
+		}
+		return nil, internalError(fmt.Sprintf("GetTopicById() failed, err: %s", err.Error()))
+	}
+
+	now := int32(time.Now().Unix())
+	if now >= topic.StartAt {
+		return nil, ErrTopicAlreadyStarted
+	}
+
 	voterID, err := q.CreateVoter(ctx, sqlc.CreateVoterParams{
 		TopicID:  topicID,
 		UserName: req.UserName,
@@ -889,6 +902,19 @@ func (s *Service) CreateItem(ctx context.Context, r *http.Request) (*CreateItemR
 
 	if err := checkTopicOwnership(ctx, q, topicID, userID); err != nil {
 		return nil, err
+	}
+
+	topic, err := q.GetTopicById(ctx, topicID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrTopicNotFound
+		}
+		return nil, internalError(fmt.Sprintf("GetTopicById() failed, err: %s", err.Error()))
+	}
+
+	now := int32(time.Now().Unix())
+	if now >= topic.StartAt {
+		return nil, ErrTopicAlreadyStarted
 	}
 
 	itemID, err := q.CreateItem(ctx, sqlc.CreateItemParams{
