@@ -35,7 +35,7 @@
   color: #888;
 }
 
-.voter-id-overlay {
+.voter-modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.7);
@@ -45,19 +45,118 @@
   z-index: 1000;
 }
 
-.voter-id-modal {
+.voter-modal {
   background-color: #1a1a1a;
   border: 1px solid #2a2a2a;
   border-radius: 8px;
   padding: 2rem;
   max-width: 400px;
   width: 90%;
+}
+
+.voter-modal h2 {
+  margin: 0 0 1.5rem;
+  color: #e0e0e0;
   text-align: center;
 }
 
-.voter-id-modal h2 {
-  margin: 0 0 1.5rem;
+.voter-modal label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: #b0b0b0;
+}
+
+.voter-modal input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  background-color: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
   color: #e0e0e0;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+
+.voter-modal input::placeholder {
+  color: #666;
+}
+
+.voter-modal input:disabled {
+  opacity: 0.5;
+}
+
+.voter-modal-error {
+  background-color: #2a1515;
+  color: #ff6b6b;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.voter-modal-success {
+  color: #6bff6b;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.voter-modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  justify-content: flex-end;
+}
+
+.voter-modal-cancel {
+  padding: 0.6rem 1rem;
+  background-color: transparent;
+  color: #b0b0b0;
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.voter-modal-cancel:hover {
+  background-color: #2a2a2a;
+}
+
+.voter-modal-submit {
+  padding: 0.6rem 1rem;
+  background-color: #4a90d9;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.voter-modal-submit:hover:not(:disabled) {
+  background-color: #3a7bc8;
+}
+
+.voter-modal-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.voter-modal-close {
+  padding: 0.6rem 1.5rem;
+  background-color: #4a90d9;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  width: 100%;
+}
+
+.voter-modal-close:hover {
+  background-color: #3a7bc8;
 }
 
 .voter-id-label {
@@ -83,19 +182,4 @@
   color: #ff6b6b;
   font-size: 0.85rem;
   margin: 0 0 1.5rem;
-}
-
-.voter-id-close {
-  padding: 0.6rem 1.5rem;
-  background-color: #4a90d9;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.15s;
-}
-
-.voter-id-close:hover {
-  background-color: #3a7bc8;
 }

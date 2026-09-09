@@ -160,6 +160,7 @@ export function deleteTopic(id: string): Promise<ApiResponse<DeleteTopicResponse
 
 export interface CreateVoterRequest {
   topic_id: string
+  user_name: string
 }
 
 export interface CreateVoterResponse {
