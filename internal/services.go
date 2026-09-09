@@ -67,6 +67,7 @@ var (
 	ErrVotingExpired           = &ServiceError{StatusCode: http.StatusBadRequest, Message: "voting has expired"}
 	ErrVoterItemMismatch       = &ServiceError{StatusCode: http.StatusBadRequest, Message: "voter and item do not belong to the same topic"}
 	ErrAlreadyVoted            = &ServiceError{StatusCode: http.StatusConflict, Message: "voter has already voted for this item"}
+	ErrVoterAlreadyVoted       = &ServiceError{StatusCode: http.StatusConflict, Message: "voter has already voted in this topic"}
 	ErrVoterUserNameTaken      = &ServiceError{StatusCode: http.StatusConflict, Message: "voter user name already exists in this topic"}
 )
 
@@ -1011,6 +1012,14 @@ func (s *Service) Vote(ctx context.Context, body io.Reader) (*VoteResult, error)
 	}
 	if now >= topic.ExpiredAt {
 		return nil, ErrVotingExpired
+	}
+
+	hasVoted, err := q.CheckVoterHasVoted(ctx, voterID)
+	if err != nil {
+		return nil, internalError(fmt.Sprintf("CheckVoterHasVoted() failed, err: %s", err.Error()))
+	}
+	if hasVoted > 0 {
+		return nil, ErrVoterAlreadyVoted
 	}
 
 	recordID, err := q.CreateRecord(ctx, sqlc.CreateRecordParams{

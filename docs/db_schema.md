@@ -22,6 +22,7 @@ erDiagram
     VOTERS {
         uuid id PK
         uuid topic_id FK
+        varchar user_name
     }
 
     ITEMS {
@@ -76,10 +77,13 @@ erDiagram
 
 ### voters
 
-| Column   | Type     | Constraints                |
-| -------- | -------- | -------------------------- |
-| id       | UUID     | PRIMARY KEY                |
-| topic_id | UUID     | NOT NULL, FOREIGN KEY references topics(id) ON DELETE CASCADE |
+| Column    | Type     | Constraints                |
+| --------- | -------- | -------------------------- |
+| id        | UUID     | PRIMARY KEY                |
+| topic_id  | UUID     | NOT NULL, FOREIGN KEY references topics(id) ON DELETE CASCADE |
+| user_name | VARCHAR  | NOT NULL                   |
+
+> UNIQUE constraint on `(user_name, topic_id)`.
 
 ### items
 

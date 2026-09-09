@@ -11,6 +11,19 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const checkVoterHasVoted = `-- name: CheckVoterHasVoted :one
+SELECT COUNT(*) AS has_voted
+FROM records
+WHERE voter_id = $1
+`
+
+func (q *Queries) CheckVoterHasVoted(ctx context.Context, voterID pgtype.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, checkVoterHasVoted, voterID)
+	var has_voted int64
+	err := row.Scan(&has_voted)
+	return has_voted, err
+}
+
 const countVotesByItem = `-- name: CountVotesByItem :one
 SELECT COUNT(*) AS vote_count
 FROM records
@@ -49,9 +62,14 @@ FROM voters
 WHERE id = $1
 `
 
-func (q *Queries) GetVoterById(ctx context.Context, id pgtype.UUID) (Voter, error) {
+type GetVoterByIdRow struct {
+	ID      pgtype.UUID `json:"id"`
+	TopicID pgtype.UUID `json:"topic_id"`
+}
+
+func (q *Queries) GetVoterById(ctx context.Context, id pgtype.UUID) (GetVoterByIdRow, error) {
 	row := q.db.QueryRow(ctx, getVoterById, id)
-	var i Voter
+	var i GetVoterByIdRow
 	err := row.Scan(&i.ID, &i.TopicID)
 	return i, err
 }

@@ -314,6 +314,32 @@ func (q *Queries) GetTopicsByOwner(ctx context.Context, ownerID pgtype.UUID) ([]
 	return items, nil
 }
 
+const getVoterUserNamesByTopic = `-- name: GetVoterUserNamesByTopic :many
+SELECT user_name
+FROM voters
+WHERE topic_id = $1
+`
+
+func (q *Queries) GetVoterUserNamesByTopic(ctx context.Context, topicID pgtype.UUID) ([]string, error) {
+	rows, err := q.db.Query(ctx, getVoterUserNamesByTopic, topicID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var user_name string
+		if err := rows.Scan(&user_name); err != nil {
+			return nil, err
+		}
+		items = append(items, user_name)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getVotersByTopic = `-- name: GetVotersByTopic :many
 SELECT id, user_name
 FROM voters
@@ -338,32 +364,6 @@ func (q *Queries) GetVotersByTopic(ctx context.Context, topicID pgtype.UUID) ([]
 			return nil, err
 		}
 		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getVoterUserNamesByTopic = `-- name: GetVoterUserNamesByTopic :many
-SELECT user_name
-FROM voters
-WHERE topic_id = $1
-`
-
-func (q *Queries) GetVoterUserNamesByTopic(ctx context.Context, topicID pgtype.UUID) ([]string, error) {
-	rows, err := q.db.Query(ctx, getVoterUserNamesByTopic, topicID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []string
-	for rows.Next() {
-		var user_name string
-		if err := rows.Scan(&user_name); err != nil {
-			return nil, err
-		}
-		items = append(items, user_name)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

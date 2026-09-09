@@ -12,3 +12,8 @@ RETURNING id;
 SELECT COUNT(*) AS vote_count
 FROM records
 WHERE item_id = $1;
+
+-- name: CheckVoterHasVoted :one
+SELECT COUNT(*) AS has_voted
+FROM records
+WHERE voter_id = $1;

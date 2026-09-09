@@ -388,7 +388,7 @@ Cast a vote for an item. No authentication required.
 | 201 Created | `{ "record_id": 1 }` |
 | 400 Bad Request | `{ "error": "invalid request body" }` / `{ "error": "invalid item params" }` / `{ "error": "voter and item do not belong to the same topic" }` / `{ "error": "voting has not started yet" }` / `{ "error": "voting has expired" }` |
 | 404 Not Found | `{ "error": "topic not found" }` / `{ "error": "item not found" }` |
-| 409 Conflict | `{ "error": "voter has already voted for this item" }` |
+| 409 Conflict | `{ "error": "voter has already voted for this item" }` / `{ "error": "voter has already voted in this topic" }` |
 | 500 Internal Server Error | `{ "error": "internal error" }` |
 
 **Notes**
