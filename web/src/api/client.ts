@@ -174,6 +174,14 @@ export function createVoter(data: CreateVoterRequest): Promise<ApiResponse<Creat
   })
 }
 
+export interface GetVotersResponse {
+  user_names: string[]
+}
+
+export function getVoters(topicId: string): Promise<ApiResponse<GetVotersResponse>> {
+  return request<GetVotersResponse>(`/voters?topic_id=${topicId}`)
+}
+
 export interface ItemValue {
   id: number
   key: string
