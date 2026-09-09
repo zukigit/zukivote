@@ -118,4 +118,4 @@ erDiagram
 | item_id    | INTEGER  | NOT NULL, FOREIGN KEY references items(id) ON DELETE CASCADE |
 | created_at | INTEGER  | NOT NULL (unix time)       |
 
-> UNIQUE constraint on `(voter_id, item_id)` prevents a voter from voting on the same item more than once.
+> UNIQUE constraint on `(voter_id, item_id)` prevents duplicate votes for the same item by the same voter.

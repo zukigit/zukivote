@@ -395,7 +395,7 @@ Cast a vote for an item. No authentication required.
 
 - The voter and item must belong to the same topic.
 - Voting is only allowed between `topics.start_at` and `topics.expired_at`.
-- Each voter can only vote once per item (enforced by unique constraint).
+- Each voter can only vote once per topic (enforced by application logic).
 - Returns the created record ID.
 
 ---
