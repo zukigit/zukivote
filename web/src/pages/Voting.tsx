@@ -13,7 +13,8 @@ import './Voting.css'
 type VoteStatus = 'idle' | 'submitting' | 'success' | 'failure'
 type VotingStatus = 'not-started' | 'active' | 'ended'
 
-function getVotingStatus(startAt: number, expiredAt: number): VotingStatus {
+function getVotingStatus(startAt: number, expiredAt: number): VotingStatus | null {
+  if (startAt === 0 || expiredAt === 0) return null
   const now = Math.floor(Date.now() / 1000)
   if (now < startAt) return 'not-started'
   if (now >= expiredAt) return 'ended'
@@ -214,23 +215,25 @@ function Voting() {
 
       {error && <p className="voting-error">{error}</p>}
 
-      <div className={`voting-status voting-status-${votingStatus}`}>
-        {votingStatus === 'not-started' && (
-          <>
-            <span className="voting-status-label">Voting starts at:</span>
-            <span className="voting-status-time">{formatTimestamp(startAt)}</span>
-          </>
-        )}
-        {votingStatus === 'active' && (
-          <>
-            <span className="voting-status-label">Voting ends at:</span>
-            <span className="voting-status-time">{formatTimestamp(expiredAt)}</span>
-          </>
-        )}
-        {votingStatus === 'ended' && (
-          <span className="voting-status-label">Voting has ended</span>
-        )}
-      </div>
+      {votingStatus && (
+        <div className={`voting-status voting-status-${votingStatus}`}>
+          {votingStatus === 'not-started' && (
+            <>
+              <span className="voting-status-label">Voting starts at:</span>
+              <span className="voting-status-time">{formatTimestamp(startAt)}</span>
+            </>
+          )}
+          {votingStatus === 'active' && (
+            <>
+              <span className="voting-status-label">Voting ends at:</span>
+              <span className="voting-status-time">{formatTimestamp(expiredAt)}</span>
+            </>
+          )}
+          {votingStatus === 'ended' && (
+            <span className="voting-status-label">Voting has ended</span>
+          )}
+        </div>
+      )}
 
       {items.length === 0 ? (
         <p className="voting-empty">No items found</p>

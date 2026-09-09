@@ -41,8 +41,9 @@ func (h *Handler) Register(r *mux.Router) {
 
 	r.HandleFunc("/photo", h.GetItemPhoto).Methods(http.MethodGet, http.MethodOptions)
 
+	r.HandleFunc("/items", h.GetItems).Methods(http.MethodGet, http.MethodOptions)
+
 	items := r.PathPrefix("/items").Subrouter()
-	items.HandleFunc("", h.GetItems).Methods(http.MethodGet, http.MethodOptions)
 	items.Use(h.authMiddleware)
 	items.HandleFunc("", h.CreateItem).Methods(http.MethodPost, http.MethodOptions)
 	items.HandleFunc("/{id}", h.DeleteItem).Methods(http.MethodDelete, http.MethodOptions)

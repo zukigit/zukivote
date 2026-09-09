@@ -684,11 +684,6 @@ type GetItemsResult struct {
 }
 
 func (s *Service) GetItems(ctx context.Context, topicIDStr string) (*GetItemsResult, error) {
-	userID, ok := userIDFromContext(ctx)
-	if !ok {
-		return nil, ErrUnauthenticated
-	}
-
 	if topicIDStr == "" {
 		return nil, ErrInvalidItemParams
 	}
@@ -699,9 +694,6 @@ func (s *Service) GetItems(ctx context.Context, topicIDStr string) (*GetItemsRes
 	}
 
 	q := sqlc.New(s.pool)
-	if err := checkTopicOwnership(ctx, q, topicID, userID); err != nil {
-		return nil, err
-	}
 
 	rows, err := q.GetItemsByTopic(ctx, topicID)
 	if err != nil {
