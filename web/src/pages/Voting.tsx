@@ -58,6 +58,10 @@ function Voting() {
   const [autoRefresh, setAutoRefresh] = useState(false)
   const [refreshInterval, setRefreshInterval] = useState(5)
 
+  // Countdown state
+  const [showCountdown, setShowCountdown] = useState(false)
+  const [remainingSeconds, setRemainingSeconds] = useState(0)
+
   const votingStatus = getVotingStatus(startAt, expiredAt)
 
   async function fetchData() {
@@ -111,10 +115,40 @@ function Voting() {
 
     const intervalId = setInterval(() => {
       fetchData()
+
+      // Check if we're within 1 minute of voting ending
+      if (expiredAt > 0) {
+        const now = Math.floor(Date.now() / 1000)
+        const remaining = expiredAt - now
+        if (remaining > 0 && remaining <= 60) {
+          setShowCountdown(true)
+          setRemainingSeconds(remaining)
+        } else if (remaining <= 0) {
+          setShowCountdown(false)
+        }
+      }
     }, refreshInterval * 1000)
 
     return () => clearInterval(intervalId)
-  }, [autoRefresh, refreshInterval, votingStatus, topicId])
+  }, [autoRefresh, refreshInterval, votingStatus, topicId, expiredAt])
+
+  useEffect(() => {
+    if (!showCountdown) return
+
+    const countdownId = setInterval(() => {
+      const now = Math.floor(Date.now() / 1000)
+      const remaining = expiredAt - now
+      if (remaining <= 0) {
+        setShowCountdown(false)
+        setRemainingSeconds(0)
+        clearInterval(countdownId)
+      } else {
+        setRemainingSeconds(remaining)
+      }
+    }, 1000)
+
+    return () => clearInterval(countdownId)
+  }, [showCountdown, expiredAt])
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -406,6 +440,17 @@ function Voting() {
               src={getPhotoUrl(lightboxItem.id)}
               alt={lightboxItem.description}
             />
+          </div>
+        </div>
+      )}
+
+      {showCountdown && (
+        <div className="countdown-overlay">
+          <div className="countdown-modal">
+            <h2>Voting Ending Soon!</h2>
+            <p className="countdown-message">Voting will end in:</p>
+            <p className="countdown-timer">{remainingSeconds}s</p>
+            <button className="countdown-close" onClick={() => setShowCountdown(false)}>Dismiss</button>
           </div>
         </div>
       )}

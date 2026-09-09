@@ -164,24 +164,6 @@ function Topics() {
                       <button
                         className="menu-item"
                         onClick={() => {
-                          navigate(`/topics/edit/${topic.id}`)
-                          setOpenMenuId(null)
-                        }}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="menu-item"
-                        onClick={() => {
-                          navigate(`/voting/${topic.id}`)
-                          setOpenMenuId(null)
-                        }}
-                      >
-                        Voting
-                      </button>
-                      <button
-                        className="menu-item"
-                        onClick={() => {
                           navigate('/items', { state: { topicId: topic.id } })
                           setOpenMenuId(null)
                         }}
@@ -200,14 +182,20 @@ function Topics() {
                       <button
                         className="menu-item"
                         onClick={() => {
-                          const link = `${window.location.origin}/voting/${topic.id}`
-                          navigator.clipboard.writeText(link)
-                          setMessage(`Link copied: ${link}`)
-                          setTimeout(() => setMessage(''), 5000)
+                          navigate(`/voting/${topic.id}`)
                           setOpenMenuId(null)
                         }}
                       >
-                        Get Voting Link
+                        Voting
+                      </button>
+                      <button
+                        className="menu-item"
+                        onClick={() => {
+                          navigate(`/topics/edit/${topic.id}`)
+                          setOpenMenuId(null)
+                        }}
+                      >
+                        Edit
                       </button>
                       <button
                         className="menu-item menu-item-delete"
