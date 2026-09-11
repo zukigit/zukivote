@@ -249,7 +249,7 @@ function Voting() {
         <div className="voting-header">
           {isAuthenticated && <button className="icon" onClick={() => navigate(-1)}>←</button>}
           <button className="icon" onClick={handleRefresh} title="Refresh" disabled>↻</button>
-          <h1>Loading...</h1>
+          <h1>{topicName || 'Loading...'}</h1>
         </div>
       </div>
     )
@@ -301,7 +301,7 @@ function Voting() {
             </div>
           )}
         </div>
-        <h1>Voting</h1>
+        <h1>{topicName || 'Voting'}</h1>
       </div>
 
       {error && <p className="voting-error">{error}</p>}
